@@ -117,6 +117,17 @@ class AuthService extends Service {
             return data
         })
     }
+
+    async signinWithProvider({ provider }: { provider: "google" | "github" }) {
+        return this.handle(async () => {
+            await authClient.signIn.social({
+                provider,
+                callbackURL: window.location.origin,
+                newUserCallbackURL: "/",
+                errorCallbackURL: "/",
+            })
+        })
+    }
 }
 
 export default new AuthService()

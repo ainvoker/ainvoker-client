@@ -17,7 +17,7 @@ import ResetPassword from "./pages/ResetPassword"
 function App() {
 
   return (
-    <>
+    <div className="selection:bg-[#dddddd] selection:text-accent">
       <AuthProvider>
         <BrowserRouter>
           <Routes>
@@ -47,7 +47,7 @@ function App() {
           </Routes>
         </BrowserRouter>
       </AuthProvider>
-    </>
+    </div>
   )
 }
 

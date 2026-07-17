@@ -12,6 +12,7 @@ const Dashboard = () => {
 
     return (
         <div>
+            DASHBOARD NI SHA <br></br>
             <button className="btn" onClick={handleLogout}>Log out</button>
         </div>
     )

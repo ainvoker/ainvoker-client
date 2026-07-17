@@ -6,6 +6,7 @@
   --font-sans: "Poppins", sans-serif;
   --color-accent: #111111;
   --background-image-accent-gradient: linear-gradient(135deg, #eee, #222);
+  --background-image-accent-gradient-lg: linear-gradient(135deg, #eee 60%, #222);
   --animate-shake: shake 0.4s ease-in-out;
 
   @keyframes shake {

@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "title": "Text Generation",
+        "description": "Send a prompt, get a response—no extra configuration needed. AInvoker abstracts away multiple AI providers into one unified interface, giving you reliable text generation with less code and zero vendor lock-in.",
+        "language": "typescript",
+        "codes": [
+            {
+                "provider": "openai",
+                "code": "import { ainvoker as ai } from \"ainvoker\"\n\nconst { text } = await ai.text.generate({  \n\tmodel: \"openai/gpt-5.4\",  \n\tprompt: \"How does SDK works?\"\n})\n\nconsole.log(text)"
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "title": "Image Generation",
+        "description": "Create images with a single request while AInvoker abstracts away provider-specific APIs. Control prompts, size, and output format through a consistent interface designed for reliability and flexibility.",
+        "language": "typescript",
+        "codes": [
+            {
+                "provider": "openai",
+                "code": "import { ainvoker as ai } from \"ainvoker\"\n\nconst { image } = await ai.vision.generate({  \n\tmodel: \"openai/dall-e-3\",  \n\tprompt: \"A cute puppy eating carrots\"\n}) \n\nconsole.log(image.base64)"
+            }
+        ]
+    },
+    {
+        "id": 3,
+        "title": "Action Invocation",
+        "description": "Trigger real-world actions through a unified interface. AInvoker lets you invoke application logic—like sending emails, processing data, or running workflows—without building custom integrations. Define actions once, and let AInvoker handle execution, validation, and scaling behind the scenes.",
+        "language": "typescript",
+        "codes": [
+            {
+                "provider": "openai",
+                "code": "import { ainvoker as ai } from \"ainvoker\"\nimport { z } from \"zod\" \n\nconst themeDef = ai.action.define({ \n\tname: \"toggle_theme\", \n\tdirection: \"Toggle theme UI to dark and light mode\", \n\tinputSchema: z.object({ \n\t\ttheme: z.enum([\"light\", \"dark\", \"system\"]) \n\t}), \n\tmethod: ({ theme }) => { \n\t\treturn setTheme(theme) \n\t} \n})"
+            }
+        ]
+    }
+]

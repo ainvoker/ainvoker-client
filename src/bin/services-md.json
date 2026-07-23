@@ -31,7 +31,7 @@
         "codes": [
             {
                 "provider": "openai",
-                "code": "import { ainvoker as ai } from \"ainvoker\"\nimport { z } from \"zod\" \n\nconst themeDef = ai.action.define({ \n\tname: \"toggle_theme\", \n\tdirection: \"Toggle theme UI to dark and light mode\", \n\tinputSchema: z.object({ \n\t\ttheme: z.enum([\"light\", \"dark\", \"system\"]) \n\t}), \n\tmethod: ({ theme }) => { \n\t\treturn setTheme(theme) \n\t} \n})"
+                "code": "import { ainvoker as ai } from \"ainvoker\"\nimport { z } from \"zod\" \n\nconst themeDef = ai.action.define({ \n\tname: \"toggle_theme\", \n\tdirection: \"Toggle theme UI to dark and light mode\", \n\tinputSchema: z.object({ \n\t\ttheme: z.enum([\"light\", \"dark\", \"system\"]) \n\t}), \n\tmethod: ({ theme }) => { \n\t\treturn setTheme(theme) \n\t} \n})\n\nconst { text } = await ai.action.invoke({\n\tmodel: \"openai/gpt-5.4\",\n\ttools: [themeDef],\n\tprompt: \"Switch theme to dark\"\n})\n\nconsole.log(text)"
             }
         ]
     }

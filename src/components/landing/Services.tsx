@@ -28,7 +28,7 @@ const Services = () => {
         }
         </div>
         <div className="flex justify-center p-6">
-            <Link to={'/'} className="flex items-center gap-2 hover:underline">
+            <Link to={'/services'} className="flex items-center gap-2 hover:underline">
                 Explore more what AInvoker can do
                 <GoArrowRight size={15}/>   
             </Link>

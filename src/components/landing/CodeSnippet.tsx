@@ -1,10 +1,7 @@
-import { useState } from 'react'
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 const CodeSnippet = ({ language, codes, className }: { language: string, codes: { provider: string, code: string }[], className: string }) => {
-    const [current, setCurrent] = useState(0)
-
     return (
         <div className={`
             bg-[#1b1b1b] rounded-lg
@@ -20,7 +17,7 @@ const CodeSnippet = ({ language, codes, className }: { language: string, codes: 
             <div className='px-2 pb-2'>
             <SyntaxHighlighter customStyle={{ backgroundColor: '#1b1b1b'}} language={language} style={atomOneDark} showLineNumbers>
             {
-                codes[current].code
+                codes[0].code
             }
             </SyntaxHighlighter>
             </div>

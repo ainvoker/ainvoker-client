@@ -2,7 +2,7 @@ import { useForm, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IoArrowBackOutline } from 'react-icons/io5'
 import { FaCheck } from "react-icons/fa6";
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { signupSchema, type SignupFormValues } from '../types/common/signupSchema'
 import OAuthProviders from '../components/common/OAuthProviders'
@@ -13,8 +13,14 @@ import { useAuth } from '../contexts/AuthContext'
 import Button from '../components/common/Button'
 
 const Signup = () => {
+    const navigate = useNavigate()
     const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false)
     const { refresh, setAuth } = useAuth()
+
+    const handleBack = () => {
+        if (window.history.length > 1) navigate(-1)
+        else navigate('/')
+    }
     const { register, handleSubmit, formState, setError, reset } = useForm<SignupFormValues>({
         resolver: zodResolver(signupSchema),
         mode: "onTouched"
@@ -46,10 +52,14 @@ const Signup = () => {
     return (
         <div className="w-full min-h-screen flex justify-center md:justify-start bg-white">
             <div className="w-96 flex flex-col gap-3 mx-12 my-4">
-                <Link to='/' className="mb-4 text-gray-500 text-sm cursor-pointer flex items-center hover:underline w-fit">
+                <button
+                    type="button"
+                    onClick={handleBack}
+                    className="mb-4 text-gray-500 text-sm cursor-pointer flex items-center hover:underline w-fit"
+                >
                     <IoArrowBackOutline className="mr-2" />
                     Back to Home
-                </Link>
+                </button>
                 <h1 className="text-2xl font-bold text-left pb-4 text-gray-800">Create your account</h1>
 
                 <OAuthProviders />

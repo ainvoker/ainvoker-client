@@ -15,8 +15,11 @@ const CTA = () => {
     }
 
     return (
-        <div className="flex gap-3 justify-center mt-15">
-            <div className="font-mono flex gap-2 bg-[#60606033] px-4 py-2 rounded-lg w-80">
+        <div
+            className="hero-animate flex flex-col sm:flex-row gap-3 justify-center mt-15 px-4"
+            style={{ animationDelay: "380ms" }}
+        >
+            <div className="font-mono flex gap-2 bg-[#60606033] px-4 py-2 rounded-lg w-full sm:w-80">
                 <span className="select-none">$</span>
                 <span className="flex-1">npm install ainvoker</span>
                 <button
@@ -32,9 +35,9 @@ const CTA = () => {
             </div>
             <Link 
                 to="/v1/docs" 
-                className="bg-white px-4 py-2 flex gap-2 text-accent text-sm rounded-lg items-center font-semibold"
+                className="bg-white px-4 py-2 flex justify-center gap-2 text-accent text-sm rounded-lg items-center font-semibold hover:brightness-95 transition"
             >
-                View Docs
+                View Demo
                 <GoArrowRight size={15} />
             </Link>
         </div>

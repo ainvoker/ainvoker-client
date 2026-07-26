@@ -4,7 +4,7 @@ import CTA from './CTA'
 
 const Hero = () => {
   return (
-    <section className="flex flex-col w-full aspect-video">
+    <section className="flex flex-col w-full pb-20">
       <Nav />
       <Header />
       <CTA />

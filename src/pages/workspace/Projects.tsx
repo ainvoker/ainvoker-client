@@ -39,20 +39,20 @@ const Projects = () => {
         description={`Organize models, keys, and actions by environment in ${workspaceName}.`}
       >
         {error ? (
-          <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400">
             {error}
           </p>
         ) : null}
 
         {busy && projects.length === 0 ? (
-          <p className="text-sm text-neutral-500">Loading projects…</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Loading projects…</p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {projects.map((project) => (
               <Link
                 key={project.id}
                 to={routes.project(project.id)}
-                className="group flex flex-col gap-4 rounded-2xl border border-neutral-200/80 bg-white p-5 transition hover:border-neutral-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+                className="group flex flex-col gap-4 rounded-2xl border border-neutral-200/80 bg-white p-5 transition hover:border-neutral-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-600 dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -61,10 +61,10 @@ const Projects = () => {
                       {formatProjectEnvironment(project.environment)}
                     </p>
                   </div>
-                  <HiOutlineArrowRight className="size-4 text-neutral-300 transition group-hover:translate-x-0.5 group-hover:text-accent" />
+                  <HiOutlineArrowRight className="size-4 text-neutral-300 transition group-hover:translate-x-0.5 group-hover:text-accent dark:text-neutral-600" />
                 </div>
                 {project.description ? (
-                  <p className="line-clamp-2 text-sm text-neutral-500">
+                  <p className="line-clamp-2 text-sm text-neutral-500 dark:text-neutral-400">
                     {project.description}
                   </p>
                 ) : (
@@ -76,7 +76,7 @@ const Projects = () => {
             <button
               type="button"
               onClick={() => setCreateOpen(true)}
-              className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-neutral-300 bg-white/50 p-5 text-center text-neutral-500 transition hover:border-neutral-400 hover:text-accent"
+              className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-neutral-300 bg-white/50 p-5 text-center text-neutral-500 transition hover:border-neutral-400 hover:text-accent dark:border-neutral-600 dark:bg-neutral-900/50 dark:text-neutral-400 dark:hover:border-neutral-500 dark:hover:text-neutral-100"
             >
               <HiOutlineFolderPlus className="size-6 opacity-50" aria-hidden />
               <p className="text-sm font-medium">Create project</p>
@@ -86,7 +86,7 @@ const Projects = () => {
         )}
 
         {!busy && projects.length === 0 && !error ? (
-          <p className="mt-4 text-sm text-neutral-500">
+          <p className="mt-4 text-sm text-neutral-500 dark:text-neutral-400">
             No projects yet in {workspaceName}. Create one to get started.
           </p>
         ) : null}

@@ -96,7 +96,7 @@ const ProjectSwitcher = () => {
           aria-expanded={open}
           aria-controls={listId}
           onClick={() => setOpen((value) => !value)}
-          className="inline-flex max-w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-neutral-100"
+          className="inline-flex max-w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
         >
           <span className="truncate text-sm font-semibold text-accent">{label}</span>
           <HiChevronDown
@@ -113,15 +113,15 @@ const ProjectSwitcher = () => {
             id={listId}
             role="listbox"
             aria-label="Switch project"
-            className="absolute top-full left-0 z-50 mt-2 w-72 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_16px_40px_rgba(0,0,0,0.12)]"
+            className="absolute top-full left-0 z-50 mt-2 w-72 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_16px_40px_rgba(0,0,0,0.12)] dark:border-neutral-700 dark:bg-neutral-900 dark:shadow-[0_16px_40px_rgba(0,0,0,0.45)]"
           >
-            <div className="border-b border-neutral-100 px-4 py-3">
+            <div className="border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
               <p className="truncate text-sm font-medium text-accent">{label}</p>
               <div className="mt-2 flex flex-col gap-0.5">
                 <Link
                   to={routes.projects}
                   onClick={() => setOpen(false)}
-                  className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-accent"
+                  className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-accent dark:text-neutral-300 dark:hover:bg-neutral-800"
                 >
                   <HiOutlineSquares2X2 className="size-4 opacity-70" aria-hidden />
                   See all projects
@@ -132,7 +132,7 @@ const ProjectSwitcher = () => {
                     setOpen(false)
                     setCreateOpen(true)
                   }}
-                  className="inline-flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-accent"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-accent dark:text-neutral-300 dark:hover:bg-neutral-800"
                 >
                   <HiOutlineFolderPlus className="size-4 opacity-70" aria-hidden />
                   Create a project
@@ -145,10 +145,10 @@ const ProjectSwitcher = () => {
                 All projects
               </p>
               {isProjectsLoading && projects.length === 0 ? (
-                <p className="px-4 py-2 text-sm text-neutral-500">Loading…</p>
+                <p className="px-4 py-2 text-sm text-neutral-500 dark:text-neutral-400">Loading…</p>
               ) : null}
               {!isProjectsLoading && projects.length === 0 ? (
-                <p className="px-4 py-2 text-sm text-neutral-500">No projects yet</p>
+                <p className="px-4 py-2 text-sm text-neutral-500 dark:text-neutral-400">No projects yet</p>
               ) : null}
               {projects.map((project) => {
                 const active = project.id === projectId
@@ -161,7 +161,9 @@ const ProjectSwitcher = () => {
                     onClick={() => switchTo(project.id)}
                     className={[
                       "flex w-full cursor-pointer flex-col gap-0.5 px-4 py-2.5 text-left transition-colors",
-                      active ? "bg-neutral-100" : "hover:bg-neutral-50",
+                      active
+                        ? "bg-neutral-100 dark:bg-neutral-800"
+                        : "hover:bg-neutral-50 dark:hover:bg-neutral-800/70",
                     ].join(" ")}
                   >
                     <span className="truncate text-sm font-medium text-accent">

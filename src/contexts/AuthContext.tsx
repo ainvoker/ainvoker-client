@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import AuthService from "../services/AuthService";
-import UserService, { type BootstrapResult } from "../services/UserService";
+import UserService, { type AppUser, type BootstrapResult } from "../services/UserService";
 import type { User } from "@neondatabase/neon-js/auth/types";
 import { clearStoredOrganizationId } from "../utils/workspace";
 
@@ -10,6 +10,7 @@ const AuthContext = createContext<{
     otp: string | null,
     /** App user + memberships from the last successful bootstrap (null until synced). */
     appBootstrap: BootstrapResult | null,
+    patchAppUser: (user: AppUser) => void,
     setVerificationCode: (otp: string | null) => void,
     setAuth: (data: User | undefined) => void,
     isLoading: boolean, 
@@ -20,6 +21,7 @@ const AuthContext = createContext<{
     token: null,
     otp: "",
     appBootstrap: null,
+    patchAppUser: () => {},
     setVerificationCode: () => {},
     setAuth: () => {},
     isLoading: true,
@@ -122,6 +124,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setOtp(otp)
     }
 
+    const patchAppUser = useCallback((user: AppUser) => {
+        setAppBootstrap((prev) => (prev ? { ...prev, user } : prev))
+    }, [])
+
     useEffect(() => {
         fetchAuthUser()
     }, [fetchAuthUser])
@@ -133,6 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 token,
                 otp,
                 appBootstrap,
+                patchAppUser,
                 setVerificationCode,
                 setAuth,
                 isLoading: loading,

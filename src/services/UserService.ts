@@ -2,11 +2,14 @@ import Service from "./Service";
 
 const API_URL = import.meta.env.VITE_API_URL as string | undefined;
 
+export type ThemePreference = "LIGHT" | "DARK" | "DEVICE";
+
 export type AppUser = {
     id: string;
     firstName: string | null;
     lastName: string | null;
     profilePicture: string | null;
+    themePreference: ThemePreference;
     createdAt: string;
     updatedAt: string;
 };
@@ -28,6 +31,13 @@ export type AppMembership = {
 export type BootstrapResult = {
     user: AppUser;
     memberships: AppMembership[];
+};
+
+export type UpdateProfileInput = {
+    firstName?: string | null;
+    lastName?: string | null;
+    profilePicture?: string | null;
+    themePreference?: ThemePreference;
 };
 
 function splitName(name: string | null | undefined): {
@@ -71,6 +81,24 @@ class UserService extends Service {
                 ...(lastName !== undefined ? { lastName } : {}),
                 ...(profilePicture ? { profilePicture } : {}),
             }),
+        });
+    }
+
+    async updateProfile(
+        token: string,
+        input: UpdateProfileInput,
+    ): Promise<[AppUser | null, string | undefined]> {
+        if (!API_URL) {
+            return [null, "VITE_API_URL is not configured"];
+        }
+
+        return this.request<AppUser>(`${API_URL}/api/v1/me`, {
+            method: "PATCH",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(input),
         });
     }
 }

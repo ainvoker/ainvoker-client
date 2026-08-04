@@ -13,17 +13,17 @@ const WorkspacePage = ({ title, description, children }: WorkspacePageProps) => 
           {title}
         </h1>
         {description ? (
-          <p className="max-w-2xl text-sm text-neutral-500">
+          <p className="max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">
             {description}
           </p>
         ) : null}
       </header>
 
       {children ?? (
-        <div className="relative overflow-hidden rounded-xl border border-neutral-200/80 bg-white p-5 md:p-6">
+        <div className="relative overflow-hidden rounded-xl border border-neutral-200/80 bg-white p-5 md:p-6 dark:border-neutral-700 dark:bg-neutral-900">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-[0.35]"
+            className="pointer-events-none absolute inset-0 opacity-[0.35] dark:opacity-20"
             style={{
               backgroundImage:
                 "radial-gradient(circle at 1px 1px, rgba(17,17,17,0.12) 1px, transparent 0)",
@@ -34,7 +34,7 @@ const WorkspacePage = ({ title, description, children }: WorkspacePageProps) => 
             <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
               Coming soon
             </p>
-            <p className="max-w-md text-sm text-neutral-600">
+            <p className="max-w-md text-sm text-neutral-600 dark:text-neutral-300">
               This surface is ready for wiring. Content for{" "}
               <span className="font-medium text-accent">{title}</span> will land
               here.

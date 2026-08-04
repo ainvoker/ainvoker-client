@@ -8,7 +8,7 @@ import ProjectSwitcher from "../components/workspace/ProjectSwitcher"
 const ProjectLayout = () => {
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)] flex-col md:min-h-screen">
-      <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center border-b border-neutral-200/80 bg-[#f4f4f5]/90 px-4 backdrop-blur md:h-14 md:px-5 lg:px-6">
+      <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center border-b border-neutral-200/80 bg-[#f4f4f5]/90 px-4 backdrop-blur md:h-14 md:px-5 lg:px-6 dark:border-neutral-800 dark:bg-neutral-950/90">
         <ProjectSwitcher />
       </header>
 

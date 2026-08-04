@@ -13,7 +13,10 @@ import { useAuth } from "../../contexts/AuthContext"
 import { useTheme } from "../../contexts/ThemeContext"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
 import AuthService from "../../services/AuthService"
-import type { ThemePreference } from "../../services/UserService"
+import {
+  formatAppUserName,
+  type ThemePreference,
+} from "../../services/UserService"
 import { routes } from "../../utils/navigation"
 import UserAvatar from "../common/UserAvatar"
 
@@ -36,7 +39,7 @@ const menuItemClass =
 
 const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
   const navigate = useNavigate()
-  const { user, appBootstrap, refresh } = useAuth()
+  const { appBootstrap, refresh } = useAuth()
   const { activeOrganization } = useWorkspace()
   const { themePreference, setThemePreference, isSaving } = useTheme()
   const [open, setOpen] = useState(false)
@@ -44,10 +47,10 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
   const rootRef = useRef<HTMLDivElement>(null)
   const menuId = useId()
 
-  const avatarSrc =
-    appBootstrap?.user.profilePicture ??
-    (typeof user?.image === "string" ? user.image : null)
-  const displayName = user?.name || "Account"
+  const appUser = appBootstrap?.user
+  const avatarSrc = appUser?.profilePicture ?? null
+  const displayName = formatAppUserName(appUser) || "Account"
+  const email = appUser?.email ?? null
   const workspaceName = activeOrganization?.name ?? "Workspace"
   const workspaceInitial = workspaceName.trim().charAt(0).toUpperCase() || "W"
 
@@ -98,15 +101,15 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
       >
         <UserAvatar
           src={avatarSrc}
-          name={user?.name}
-          email={user?.email}
+          name={displayName}
+          email={email}
           className="size-8"
         />
         <div className="min-w-0 flex-1 truncate">
           <p className="truncate text-[13px] font-medium text-accent">
             {displayName}
           </p>
-          <p className="truncate text-[12px] text-neutral-400">{user?.email}</p>
+          <p className="truncate text-[12px] text-neutral-400">{email}</p>
         </div>
       </button>
 
@@ -119,7 +122,7 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
         >
           <div className="border-b border-neutral-100 px-3 py-3 dark:border-neutral-800">
             <p className="truncate px-1 text-[12px] text-neutral-500 dark:text-neutral-400">
-              {user?.email}
+              {email}
             </p>
             <div
               className="mt-2.5 inline-flex rounded-lg border border-neutral-200 bg-neutral-50 p-0.5 dark:border-neutral-700 dark:bg-neutral-800"

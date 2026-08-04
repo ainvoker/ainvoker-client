@@ -3,7 +3,10 @@ import UserAvatar from "../../components/common/UserAvatar"
 import { useAuth } from "../../contexts/AuthContext"
 import { useTheme } from "../../contexts/ThemeContext"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
-import type { ThemePreference } from "../../services/UserService"
+import {
+  formatAppUserName,
+  type ThemePreference,
+} from "../../services/UserService"
 
 const themeOptions: { value: ThemePreference; label: string }[] = [
   { value: "LIGHT", label: "Light" },
@@ -14,11 +17,12 @@ const themeOptions: { value: ThemePreference; label: string }[] = [
 const Settings = () => {
   const { activeOrganization, role, isLoading } = useWorkspace()
   const { themePreference, setThemePreference, isSaving } = useTheme()
-  const { user, appBootstrap } = useAuth()
+  const { appBootstrap } = useAuth()
 
-  const avatarSrc =
-    appBootstrap?.user.profilePicture ??
-    (typeof user?.image === "string" ? user.image : null)
+  const appUser = appBootstrap?.user
+  const displayName = formatAppUserName(appUser) || "Account"
+  const avatarSrc = appUser?.profilePicture ?? null
+  const email = appUser?.email ?? null
 
   return (
     <main className="flex-1 overflow-auto p-4 md:p-5 lg:p-6">
@@ -73,16 +77,16 @@ const Settings = () => {
             <div className="mt-4 flex items-center gap-3">
               <UserAvatar
                 src={avatarSrc}
-                name={user?.name}
-                email={user?.email}
+                name={displayName}
+                email={email}
                 className="size-11"
               />
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-accent">
-                  {user?.name || "Account"}
+                  {displayName}
                 </p>
                 <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">
-                  {user?.email}
+                  {email}
                 </p>
               </div>
             </div>

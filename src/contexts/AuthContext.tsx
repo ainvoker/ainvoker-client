@@ -32,7 +32,6 @@ const AuthContext = createContext<{
 export const useAuth = () => useContext(AuthContext)
 
 /** Survives React Strict Mode remounts (refs alone do not). */
-const bootstrappedUserIds = new Set<string>()
 const bootstrapInFlight = new Map<string, Promise<BootstrapResult | null>>()
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -45,11 +44,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const bootstrappedFor = useRef<string | null>(null)
 
     const syncAppUser = useCallback(async (sessionToken: string, neonUser: User) => {
-        if (bootstrappedFor.current === neonUser.id || bootstrappedUserIds.has(neonUser.id)) {
-            bootstrappedFor.current = neonUser.id
-            return
-        }
-
         const existing = bootstrapInFlight.get(neonUser.id)
         if (existing) {
             const result = await existing
@@ -58,9 +52,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             return
         }
 
+        // Always hydrate appBootstrap from the API (idempotent).
+        // Neon name/image are create-time seeds — backend should not overwrite
+        // existing profile fields on later calls (needed for edit profile).
         const run = (async () => {
             const [result, syncErr] = await UserService.bootstrap(sessionToken, {
                 name: neonUser.name,
+                email: neonUser.email,
                 image: neonUser.image,
             })
 
@@ -69,7 +67,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 return null
             }
 
-            bootstrappedUserIds.add(neonUser.id)
             bootstrappedFor.current = neonUser.id
             setAppBootstrap(result)
             return result

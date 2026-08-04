@@ -11,6 +11,7 @@ import AuthService from '../services/AuthService'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import Button from '../components/common/Button'
+import AuthLayout from '../layouts/AuthLayout'
 
 const Signup = () => {
     const navigate = useNavigate()
@@ -50,8 +51,7 @@ const Signup = () => {
     }, [isSubmitSuccessful, reset])
 
     return (
-        <div className="w-full min-h-screen flex justify-center md:justify-start bg-white">
-            <div className="w-96 flex flex-col gap-3 mx-12 my-4">
+        <AuthLayout>
                 <button
                     type="button"
                     onClick={handleBack}
@@ -133,9 +133,7 @@ const Signup = () => {
                     Already have an account?{" "}
                     <Link to="/login" className='font-semibold hover:underline'>Sign in</Link>
                 </p>
-            </div>
-            <div className="flex-1 min-h-screen bg-accent-gradient hidden md:block"></div>
-        </div>
+        </AuthLayout>
     )
 }
 

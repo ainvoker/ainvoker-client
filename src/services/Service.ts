@@ -16,10 +16,14 @@ export default class Service {
             const data = await res.json()
 
             if (!res.ok) {
-                throw new Error(data.error)
+                const message =
+                    typeof data?.error === "string"
+                        ? data.error
+                        : data?.error?.message ?? `Request failed (${res.status})`
+                throw new Error(message)
             }
 
-            return data
+            return (data?.data ?? data) as T
         })
     }
 

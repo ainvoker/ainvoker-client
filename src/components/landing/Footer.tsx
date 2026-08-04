@@ -4,9 +4,8 @@ import Logo from "../../assets/logo.svg"
 
 const navLinks = [
     { label: "Home", to: "/" },
-    { label: "Dashboard", to: "/dashboard" },
+    { label: "Dashboard", to: "/" },
     { label: "Documentation", to: "/v1/docs" },
-    { label: "Auth UI", to: "/login" },
     { label: "Pricing", to: "#pricing" },
     { label: "Contact", to: "#contact" },
 ]

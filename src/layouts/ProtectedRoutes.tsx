@@ -4,12 +4,18 @@ import { useAuth } from "../contexts/AuthContext"
 const ProtectedRoutes = () => {
     const { user, isLoading } = useAuth()
 
-    if (!user && !isLoading) return <Navigate to={'/'} replace />
-    if (user && !user.emailVerified) return <Navigate to={'/verify-email'} replace />
+    if (isLoading) {
+        return (
+            <div className="grid min-h-screen place-content-center bg-[#f4f4f5] text-sm text-neutral-500">
+                Loading workspace…
+            </div>
+        )
+    }
 
-    return (
-        <Outlet />
-    )
+    if (!user) return <Navigate to="/" replace />
+    if (!user.emailVerified) return <Navigate to="/verify-email" replace />
+
+    return <Outlet />
 }
 
 export default ProtectedRoutes

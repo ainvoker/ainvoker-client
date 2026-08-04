@@ -1,12 +1,12 @@
 import type { InputGroupParams } from '../../types/common/inputgroup'
-import { capitalize } from '../../utils/helper'
+import Helper from '../../utils/helper'
 
 const InputGroup = ({ label, type, placeholder, error, name, onChange, onBlur, ref }: InputGroupParams) => {
     return (
         <div className={`rounded-lg overflow-hidden border border-gray-300 ${error ? 'bg-red-100' : 'bg-light'}`}>
             {error ?
                 <label htmlFor={name} className="block cursor-text px-4 pt-2 text-xs font-medium text-red-500">
-                    {capitalize(error)}
+                    {Helper.capitalize(error)}
                 </label>
                 :
                 <label htmlFor={name} className="block cursor-text px-4 pt-2 text-xs font-medium text-gray-800">

@@ -40,12 +40,8 @@ const WorkspaceSwitcher = () => {
     }
   }, [open])
 
-  const handleCreate = async (
-    input: CreateOrganizationInput,
-  ): Promise<[unknown, string | undefined]> => {
-    const [org, err] = await createWorkspace(input)
-    if (err || !org) return [null, err ?? "Failed to create workspace"]
-    return [org, undefined]
+  const handleCreate = async (input: CreateOrganizationInput) => {
+    return createWorkspace(input)
   }
 
   return (
@@ -81,7 +77,7 @@ const WorkspaceSwitcher = () => {
             id={listId}
             role="listbox"
             aria-label="Switch workspace"
-            className="absolute top-full left-0 z-50 mt-1.5 w-full min-w-[14rem] overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_16px_40px_rgba(0,0,0,0.12)] dark:border-neutral-700 dark:bg-neutral-900 dark:shadow-[0_16px_40px_rgba(0,0,0,0.45)]"
+            className="absolute top-full left-0 z-50 mt-1.5 w-full min-w-56 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_16px_40px_rgba(0,0,0,0.12)] dark:border-neutral-700 dark:bg-neutral-900 dark:shadow-[0_16px_40px_rgba(0,0,0,0.45)]"
           >
             <p className="px-3 py-2 text-[10px] font-medium tracking-widest text-neutral-400 uppercase">
               Workspaces

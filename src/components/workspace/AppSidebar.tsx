@@ -64,7 +64,7 @@ const AppSidebar = ({ mode, open, onClose, onOpen }: AppSidebarProps) => {
 
       <aside
         className={[
-          "fixed inset-y-0 left-0 z-50 flex w-56 flex-col border-r border-neutral-200/80 bg-white text-accent transition-transform duration-300 ease-out md:static md:translate-x-0 dark:border-neutral-800 dark:bg-neutral-950",
+          "fixed inset-y-0 left-0 z-50 flex w-56 flex-col border-r border-neutral-200/80 bg-white text-accent transition-transform duration-300 ease-out md:static md:h-full md:shrink-0 md:translate-x-0 dark:border-neutral-800 dark:bg-neutral-950",
           open ? "translate-x-0" : "-translate-x-full",
         ].join(" ")}
       >

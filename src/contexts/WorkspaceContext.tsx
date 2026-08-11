@@ -9,6 +9,7 @@ import {
 } from "react"
 import { useMatch, useNavigate } from "react-router-dom"
 import { useAuth } from "./AuthContext"
+import type { ApiErrorInfo } from "../services/Service"
 import OrganizationService, {
   type CreateOrganizationInput,
   type OrganizationListItem,
@@ -42,7 +43,7 @@ type WorkspaceContextValue = {
   ) => Promise<[AppProject | null, string | undefined]>
   createWorkspace: (
     input: CreateOrganizationInput,
-  ) => Promise<[OrganizationListItem | null, string | undefined]>
+  ) => Promise<[OrganizationListItem | null, ApiErrorInfo | undefined]>
   ensureProjectOrganization: (project: AppProject) => void
 }
 
@@ -59,7 +60,10 @@ const WorkspaceContext = createContext<WorkspaceContextValue>({
   refresh: async () => {},
   refreshProjects: async () => {},
   createProject: async () => [null, "Workspace is not ready"],
-  createWorkspace: async () => [null, "Workspace is not ready"],
+  createWorkspace: async () => [
+    null,
+    { status: 0, message: "Workspace is not ready" },
+  ],
   ensureProjectOrganization: () => {},
 })
 
@@ -196,14 +200,17 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const createWorkspace = useCallback(
     async (
       input: CreateOrganizationInput,
-    ): Promise<[OrganizationListItem | null, string | undefined]> => {
+    ): Promise<[OrganizationListItem | null, ApiErrorInfo | undefined]> => {
       if (!token) {
-        return [null, "Not signed in"]
+        return [null, { status: 0, message: "Not signed in" }]
       }
 
       const [org, err] = await OrganizationService.create(token, input)
       if (err || !org) {
-        return [null, err ?? "Failed to create workspace"]
+        return [
+          null,
+          err ?? { status: 0, message: "Failed to create workspace" },
+        ]
       }
 
       setOrganizations((prev) => {

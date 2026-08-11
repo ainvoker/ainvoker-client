@@ -3,6 +3,11 @@ import AuthService from "../services/AuthService";
 import UserService, { type AppUser, type BootstrapResult } from "../services/UserService";
 import type { User } from "@neondatabase/neon-js/auth/types";
 import { clearStoredOrganizationId } from "../utils/workspace";
+import {
+    isAccessTokenExpiringSoon,
+    msUntilAccessTokenRefresh,
+    setAccessTokenProvider,
+} from "../utils/auth";
 
 const AuthContext = createContext<{ 
     user: User | null,
@@ -42,6 +47,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [error, setError] = useState<string | null>(null)
     const [otp, setOtp] = useState<string | null>(null)
     const bootstrappedFor = useRef<string | null>(null)
+    const tokenRef = useRef<string | null>(null)
+    const refreshInFlight = useRef<Promise<string | null> | null>(null)
 
     const syncAppUser = useCallback(async (sessionToken: string, neonUser: User) => {
         const existing = bootstrapInFlight.get(neonUser.id)
@@ -80,34 +87,80 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [])
 
-    const fetchAuthUser = useCallback(async () => {
-        setLoading(true)
+    const applySession = useCallback(async (
+        sessionToken: string,
+        neonUser: User,
+        options?: { syncApp?: boolean },
+    ) => {
+        tokenRef.current = sessionToken
+        setToken(sessionToken)
+        setUser(neonUser)
+        setError(null)
+
+        // Skip bootstrap on silent JWT refreshes once the app user is already provisioned.
+        const shouldSync =
+            options?.syncApp !== false ||
+            bootstrappedFor.current !== neonUser.id
+        if (shouldSync) {
+            await syncAppUser(sessionToken, neonUser)
+        }
+    }, [syncAppUser])
+
+    const clearSession = useCallback(() => {
+        tokenRef.current = null
+        setUser(null)
+        setToken(null)
+        setAppBootstrap(null)
+        bootstrappedFor.current = null
+        clearStoredOrganizationId()
+    }, [])
+
+    /**
+     * Re-read session from Neon Auth.
+     * @param silent - when true, skip the full-page loading gate (background refresh).
+     */
+    const fetchAuthUser = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true)
 
         const [data, err] = await AuthService.getAuthUser()
 
-        if (err) {
+        if (err && !silent) {
             setError(err)
         }
 
         if (!data) {
-            setUser(null)
-            setToken(null)
-            setAppBootstrap(null)
-            bootstrappedFor.current = null
-            clearStoredOrganizationId()
+            clearSession()
+            if (!silent) setLoading(false)
+            return null
         }
 
-        if (data) {
-            // Neon returns an opaque session token (not a JWT). The API validates it
-            // via Neon Auth GET /get-session with Authorization: Bearer <token>.
-            setToken(data.session.token)
-            setUser(data.user)
-            setError(null)
-            await syncAppUser(data.session.token, data.user)
+        // Neon injects a short-lived JWT into session.token (set-auth-jwt).
+        await applySession(data.session.token, data.user, { syncApp: !silent })
+        if (!silent) setLoading(false)
+        return data.session.token
+    }, [applySession, clearSession])
+
+    /** Returns a usable access token, refreshing when the JWT is near expiry (or when forced). */
+    const getAccessToken = useCallback(async (options?: { force?: boolean }): Promise<string | null> => {
+        const current = tokenRef.current
+        if (!options?.force && current && !isAccessTokenExpiringSoon(current)) {
+            return current
         }
 
-        setLoading(false)
-    }, [syncAppUser])
+        if (refreshInFlight.current) {
+            return refreshInFlight.current
+        }
+
+        refreshInFlight.current = (async () => {
+            try {
+                return await fetchAuthUser(true)
+            } finally {
+                refreshInFlight.current = null
+            }
+        })()
+
+        return refreshInFlight.current
+    }, [fetchAuthUser])
 
     const setAuth = (data: User | undefined) => {
         setUser(data ?? null)
@@ -125,8 +178,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setAppBootstrap((prev) => (prev ? { ...prev, user } : prev))
     }, [])
 
+    const refresh = useCallback(async () => {
+        await fetchAuthUser(false)
+    }, [fetchAuthUser])
+
     useEffect(() => {
-        fetchAuthUser()
+        void fetchAuthUser(false)
+    }, [fetchAuthUser])
+
+    // Let Service.retry on 401 without pulling React into the request layer.
+    useEffect(() => {
+        setAccessTokenProvider(getAccessToken)
+        return () => setAccessTokenProvider(null)
+    }, [getAccessToken])
+
+    // Proactively refresh before the JWT expires.
+    useEffect(() => {
+        if (!token) return
+
+        const delay = msUntilAccessTokenRefresh(token)
+        if (delay === null) return
+
+        const id = window.setTimeout(() => {
+            void fetchAuthUser(true)
+        }, delay)
+
+        return () => window.clearTimeout(id)
+    }, [token, fetchAuthUser])
+
+    // Tab focus / visibility: refresh if the token aged out while backgrounded.
+    useEffect(() => {
+        const maybeRefresh = () => {
+            const current = tokenRef.current
+            if (current && isAccessTokenExpiringSoon(current)) {
+                void fetchAuthUser(true)
+            }
+        }
+
+        const onVisibility = () => {
+            if (document.visibilityState === "visible") maybeRefresh()
+        }
+
+        window.addEventListener("focus", maybeRefresh)
+        document.addEventListener("visibilitychange", onVisibility)
+        return () => {
+            window.removeEventListener("focus", maybeRefresh)
+            document.removeEventListener("visibilitychange", onVisibility)
+        }
     }, [fetchAuthUser])
 
     return (
@@ -141,7 +239,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setAuth,
                 isLoading: loading,
                 error,
-                refresh: fetchAuthUser
+                refresh
             }}
         >
             {children}

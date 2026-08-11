@@ -33,6 +33,8 @@ export const routes = {
   projectLogs: (projectId: string) => `/projects/${projectId}/logs`,
   projectSettings: (projectId: string) => `/projects/${projectId}/settings`,
   billing: "/billing",
+  billingCheckout: (orgId: string, plan: "pro" = "pro") =>
+    `/billing/checkout?orgId=${orgId}&plan=${plan}`,
   team: "/team",
   settings: "/settings",
 } as const

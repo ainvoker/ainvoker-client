@@ -19,6 +19,7 @@ import VerifyResetPassword from "./pages/VerifyResetPassword"
 import ResetPassword from "./pages/ResetPassword"
 import Projects from "./pages/workspace/Projects"
 import Billing from "./pages/workspace/Billing"
+import BillingCheckout from "./pages/workspace/BillingCheckout"
 import Team from "./pages/workspace/Team"
 import Settings from "./pages/workspace/Settings"
 import Overview from "./pages/workspace/projects/Overview"
@@ -66,6 +67,7 @@ function App() {
                       <Route path="settings" element={<ProjectSettings />} />
                     </Route>
                     <Route path="billing" element={<Billing />} />
+                    <Route path="billing/checkout" element={<BillingCheckout />} />
                     <Route path="team" element={<Team />} />
                     <Route path="settings" element={<Settings />} />
                   </Route>

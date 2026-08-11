@@ -23,7 +23,7 @@ const WorkspaceLayout = ({ children }: WorkspaceLayoutProps) => {
   return (
     <div
       className={[
-        "flex min-h-screen bg-[#f4f4f5] text-accent selection:bg-[#dddddd] selection:text-accent",
+        "flex h-svh overflow-hidden bg-[#f4f4f5] text-accent selection:bg-[#dddddd] selection:text-accent",
         isDark ? "dark bg-neutral-950 dark:selection:bg-neutral-700" : "",
       ].join(" ")}
       style={{ colorScheme: isDark ? "dark" : "light" }}
@@ -35,7 +35,7 @@ const WorkspaceLayout = ({ children }: WorkspaceLayoutProps) => {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="flex min-w-0 flex-1 flex-col pt-14 md:pt-0">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto pt-14 md:pt-0">
         <div
           aria-hidden
           className="pointer-events-none fixed inset-0 -z-10 opacity-40 dark:opacity-30"

@@ -1,4 +1,4 @@
-import Service from "./Service";
+import Service, { type ApiErrorInfo } from "./Service";
 
 const API_URL = import.meta.env.VITE_API_URL as string | undefined;
 
@@ -15,6 +15,7 @@ export type OrganizationListItem = {
 export type CreateOrganizationInput = {
     name: string;
     slug?: string;
+    plan: "pro";
 };
 
 class OrganizationService extends Service {
@@ -34,12 +35,12 @@ class OrganizationService extends Service {
     async create(
         token: string,
         input: CreateOrganizationInput,
-    ): Promise<[OrganizationListItem | null, string | undefined]> {
+    ): Promise<[OrganizationListItem | null, ApiErrorInfo | undefined]> {
         if (!API_URL) {
-            return [null, "VITE_API_URL is not configured"];
+            return [null, { status: 0, message: "VITE_API_URL is not configured" }];
         }
 
-        return this.request<OrganizationListItem>(`${API_URL}/api/v1/organizations`, {
+        return this.requestDetailed<OrganizationListItem>(`${API_URL}/api/v1/organizations`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,

@@ -3,53 +3,46 @@ import Reveal from "./Reveal"
 
 const plans = [
     {
-        name: "Simple",
-        price: "Free",
-        description: "Free for everyone",
+        name: "Free",
+        price: "$0",
+        description: "Personal workspace only — enough to try the gateway.",
         features: [
-            "2,500 requests / month",
-            "100,000 tokens / month",
-            "10 models supported",
-            "1 model provider",
-            "2 applications",
-            "Basic usage analytics",
+            "Personal workspace only (Free cannot be used on extra orgs)",
+            "50k tokens / 300 requests per month",
+            "Cheap models only (freeEligible)",
+            "Hard stop at monthly caps",
         ],
         cta: "Get Started",
         ctaHref: "/signup",
     },
     {
-        name: "Prepaid",
-        price: "₱179.00",
+        name: "Pro",
+        price: "$19",
         priceNote: "/ month",
-        description: "Fixed monthly plan with included quota",
+        description: "Fixed monthly plan with included limits per organization.",
         features: [
-            "20,000 requests / month",
-            "2M tokens / month",
-            "50+ models supported",
-            "5 model providers",
-            "10 applications",
-            "Advanced usage analytics",
-            "Email support",
+            "Unlimited additional orgs (each on its own plan)",
+            "2M tokens / 5k requests per org per month",
+            "All catalog models",
+            "Hard stop at cap (no overage)",
         ],
-        cta: "Pay Now",
+        cta: "Get Started",
         ctaHref: "/signup",
         highlighted: true,
     },
     {
-        name: "Postpaid",
+        name: "Scale",
         price: "Custom",
-        priceNote: "pricing",
-        description: "Pay only for what you use — built for scale",
+        priceNote: " · metered",
+        description: "Metered pricing for teams that need headroom.",
         features: [
-            "Unlimited requests (metered)",
-            "All models & providers",
-            "Unlimited applications",
-            "Full analytics & audit logs",
-            "Custom integrations & SLA",
-            "Dedicated account support",
+            "Unlimited additional orgs (each on its own plan)",
+            "Usage-based / contact sales",
+            "All catalog models",
+            "Optional safety ceilings when configured",
         ],
         cta: "Contact Sales",
-        ctaHref: "mailto:support-ainvoker@ainvoker.com?subject=Ainvoker%20Postpaid%20Plan",
+        ctaHref: "mailto:support-ainvoker@ainvoker.com?subject=Ainvoker%20Scale%20Plan",
     },
 ]
 
@@ -60,7 +53,10 @@ const Pricing = () => {
                 <h2 className="text-4xl font-black bg-accent-gradient-lg w-fit bg-clip-text text-transparent leading-[1.3]">
                     Plans and Pricing
                 </h2>
-                <p className="text-lg text-[#ccc]">Choose the plan that fits your usage.</p>
+                <p className="text-lg text-[#ccc]">
+                    Billing is per organization. Free stays on Personal; extra
+                    workspaces require Pro or Scale.
+                </p>
             </Reveal>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">

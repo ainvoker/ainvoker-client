@@ -1,6 +1,11 @@
 import { useEffect } from "react"
 import { createPortal } from "react-dom"
 import { HiOutlineXMark } from "react-icons/hi2"
+import SyntaxHighlighter from "react-syntax-highlighter"
+import {
+  atomOneDark,
+  atomOneLight,
+} from "react-syntax-highlighter/dist/esm/styles/hljs"
 import { useTheme } from "../../contexts/ThemeContext"
 import type { AiRequestDetail } from "../../services/AiRequestService"
 
@@ -68,6 +73,38 @@ const MetaItem = ({ label, children }: { label: string; children: React.ReactNod
   </div>
 )
 
+const PayloadBlock = ({
+  title,
+  value,
+  isDark,
+}: {
+  title: string
+  value: unknown
+  isDark: boolean
+}) => (
+  <section>
+    <h3 className="mb-2 text-xs font-medium tracking-wide text-neutral-400 uppercase">
+      {title}
+    </h3>
+    <div className="max-h-56 overflow-auto rounded-xl border border-neutral-200 dark:border-neutral-700">
+      <SyntaxHighlighter
+        language="json"
+        style={isDark ? atomOneDark : atomOneLight}
+        customStyle={{
+          margin: 0,
+          padding: "0.75rem",
+          fontSize: "0.75rem",
+          lineHeight: "1.5",
+          background: isDark ? "#0a0a0a" : "#fafafa",
+        }}
+        wrapLongLines
+      >
+        {formatJson(value)}
+      </SyntaxHighlighter>
+    </div>
+  </section>
+)
+
 const AiRequestDetailModal = ({
   open,
   detail,
@@ -76,6 +113,7 @@ const AiRequestDetailModal = ({
   onClose,
 }: AiRequestDetailModalProps) => {
   const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === "dark"
 
   useEffect(() => {
     if (!open) return
@@ -99,8 +137,8 @@ const AiRequestDetailModal = ({
   return createPortal(
     <div
       className={[
-        "fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-4 text-accent sm:items-center dark:bg-black/60",
-        resolvedTheme === "dark" ? "dark" : "",
+        "fixed inset-0 z-100 flex items-end justify-center bg-black/40 p-4 text-accent sm:items-center dark:bg-black/60",
+        isDark ? "dark" : "",
       ].join(" ")}
     >
       <button
@@ -183,23 +221,16 @@ const AiRequestDetailModal = ({
                 <MetaItem label="Time">{formatDate(detail.createdAt)}</MetaItem>
               </dl>
 
-              <section>
-                <h3 className="mb-2 text-xs font-medium tracking-wide text-neutral-400 uppercase">
-                  Request payload
-                </h3>
-                <pre className="max-h-56 overflow-auto rounded-xl border border-neutral-200 bg-neutral-50 p-3 font-mono text-xs break-words whitespace-pre-wrap text-neutral-800 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100">
-                  {formatJson(detail.requestPayload)}
-                </pre>
-              </section>
-
-              <section>
-                <h3 className="mb-2 text-xs font-medium tracking-wide text-neutral-400 uppercase">
-                  Response payload
-                </h3>
-                <pre className="max-h-56 overflow-auto rounded-xl border border-neutral-200 bg-neutral-50 p-3 font-mono text-xs break-words whitespace-pre-wrap text-neutral-800 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100">
-                  {formatJson(detail.responsePayload)}
-                </pre>
-              </section>
+              <PayloadBlock
+                title="Request payload"
+                value={detail.requestPayload}
+                isDark={isDark}
+              />
+              <PayloadBlock
+                title="Response payload"
+                value={detail.responsePayload}
+                isDark={isDark}
+              />
             </div>
           ) : null}
         </div>

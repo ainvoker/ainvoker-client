@@ -5,6 +5,11 @@ import WorkspacePage from "../../components/workspace/WorkspacePage"
 import { useAuth } from "../../contexts/AuthContext"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
 import BillingService from "../../services/BillingService"
+import {
+  clearCachedCheckout,
+  readCachedCheckout,
+  writeCachedCheckout,
+} from "../../utils/checkoutSessionCache"
 import { routes } from "../../utils/navigation"
 
 const BillingCheckout = () => {
@@ -36,15 +41,22 @@ const BillingCheckout = () => {
     let cancelled = false
 
     void (async () => {
+      const cached = readCachedCheckout(orgId)
+      if (cached) {
+        setComponentsSdkKey(cached.componentsSdkKey)
+        return
+      }
+
       const [session, err] = await BillingService.createCheckoutSession(token, orgId, {
         plan: "pro",
         returnUrl,
       })
-      if (cancelled) return
       if (err || !session) {
-        setError(err?.message ?? "Could not start checkout")
+        if (!cancelled) setError(err?.message ?? "Could not start checkout")
         return
       }
+      writeCachedCheckout(orgId, session)
+      if (cancelled) return
       setComponentsSdkKey(session.componentsSdkKey)
     })()
 
@@ -55,9 +67,10 @@ const BillingCheckout = () => {
 
   const handleSuccess = useCallback(async () => {
     setCompleted(true)
+    if (orgId) clearCachedCheckout(orgId)
     await refresh()
     navigate(routes.billing, { replace: true })
-  }, [navigate, refresh])
+  }, [navigate, orgId, refresh])
 
   const handleFail = useCallback((message: string) => {
     setError(message)

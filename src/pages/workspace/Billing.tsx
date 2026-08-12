@@ -40,9 +40,9 @@ const plans: PlanCard[] = [
     id: "pro",
     name: "Pro",
     price: "₱1,099",
-    priceNote: "/mo",
-    badge: "Fixed monthly",
-    summary: "Indie and student plan with included limits per organization.",
+    priceNote: " / 30 days",
+    badge: "Prepaid month",
+    summary: "Indie and student plan with included limits per organization. Pay each month — not auto-renewed.",
     features: [
       "Unlimited additional orgs (each on its own plan)",
       "2M tokens / 5k requests per org per month",
@@ -84,10 +84,22 @@ const Billing = () => {
   }, [token, activeOrganizationId])
 
   const currentPlanId = subscription?.planName as PlanCard["id"] | undefined
-  const isProActive = subscription?.planName === "pro" && subscription.status === "ACTIVE"
+  const periodEnd =
+    subscription?.expiresAt && !Number.isNaN(Date.parse(subscription.expiresAt))
+      ? new Date(subscription.expiresAt)
+      : null
+  const isExpiredPeriod = Boolean(periodEnd && periodEnd.getTime() <= Date.now())
+  const isProActive =
+    subscription?.planName === "pro" &&
+    subscription.status === "ACTIVE" &&
+    !isExpiredPeriod
   const isProPending =
     subscription?.pendingPlanName === "pro" ||
     (subscription?.planName === "pro" && subscription.status === "PENDING")
+  const isProExpired =
+    subscription?.planName === "pro" &&
+    (subscription.status === "EXPIRED" ||
+      (subscription.status === "ACTIVE" && isExpiredPeriod))
 
   const goToProCheckout = useCallback(() => {
     if (!activeOrganizationId) return
@@ -106,7 +118,12 @@ const Billing = () => {
             <span className="font-medium text-accent capitalize">
               {subscription.planName}
             </span>
-            {subscription.status !== "ACTIVE" ? ` (${subscription.status.toLowerCase()})` : ""}
+            {subscription.status !== "ACTIVE" || isExpiredPeriod
+              ? ` (${isExpiredPeriod && subscription.status === "ACTIVE" ? "expired" : subscription.status.toLowerCase()})`
+              : ""}
+            {periodEnd && isProActive
+              ? ` · until ${periodEnd.toLocaleDateString()}`
+              : null}
           </p>
         ) : null}
 
@@ -169,7 +186,9 @@ const Billing = () => {
                       ? "Current plan"
                       : isProPending
                         ? "Complete payment"
-                        : plan.cta}
+                        : isProExpired
+                          ? "Renew Pro"
+                          : plan.cta}
                   </Button>
                 ) : (
                   <Button
@@ -188,8 +207,9 @@ const Billing = () => {
         </div>
 
         <p className="mt-4 max-w-2xl text-xs text-neutral-400">
-          Pro payments use Xendit Components on this site. Entitlements activate after
-          Xendit confirms payment via webhook.
+          Pro is ₱1,099 prepaid for 30 days (not auto-renewed). Pay with cards, e-wallet,
+          or online banking via Xendit. Entitlements activate after Xendit confirms
+          payment via webhook.
         </p>
       </WorkspacePage>
     </main>

@@ -80,7 +80,7 @@ const BillingCheckout = () => {
     <main className="flex-1 overflow-auto p-4 md:p-5 lg:p-6">
       <WorkspacePage
         title="Complete payment"
-        description="Pay with Xendit to activate Pro on this workspace."
+        description="Pay ₱1,099 for 30 days of Pro on this workspace. Not auto-renewed."
       >
         {completed ? (
           <p className="text-sm text-neutral-600 dark:text-neutral-300">

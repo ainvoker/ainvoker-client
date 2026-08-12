@@ -9,6 +9,7 @@ export type OrgSubscription = {
     tokenLimit: number;
     requestLimit: number;
     pendingPlanName?: string | null;
+    expiresAt?: string | null;
 };
 
 export type CheckoutSession = {

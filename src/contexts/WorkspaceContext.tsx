@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react"
@@ -20,8 +21,8 @@ import ProjectService, {
 } from "../services/ProjectService"
 import { routes } from "../utils/navigation"
 import {
-  clearStoredOrganizationId,
   pickDefaultOrganizationId,
+  readInitialOrganizationId,
   readStoredOrganizationId,
   writeStoredOrganizationId,
 } from "../utils/workspace"
@@ -70,27 +71,37 @@ const WorkspaceContext = createContext<WorkspaceContextValue>({
 export const useWorkspace = () => useContext(WorkspaceContext)
 
 export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
-  const { token } = useAuth()
+  const { token, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
   const projectMatch = useMatch({ path: "/projects/:projectId", end: false })
 
   const [organizations, setOrganizations] = useState<OrganizationListItem[]>([])
-  const [activeOrganizationId, setActiveOrganizationId] = useState<string | null>(null)
+  const [activeOrganizationId, setActiveOrganizationId] = useState<string | null>(
+    () => (typeof window === "undefined" ? null : readInitialOrganizationId()),
+  )
   const [projects, setProjects] = useState<AppProject[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [isProjectsLoading, setIsProjectsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const activeOrganizationIdRef = useRef(activeOrganizationId)
+  const hasLoadedRef = useRef(false)
+  activeOrganizationIdRef.current = activeOrganizationId
 
   const resolveActiveId = useCallback((orgs: OrganizationListItem[]) => {
     const stored = readStoredOrganizationId()
     if (stored && orgs.some((org) => org.id === stored)) {
       return stored
     }
+    const current = activeOrganizationIdRef.current
+    if (current && orgs.some((org) => org.id === current)) {
+      return current
+    }
     return pickDefaultOrganizationId(orgs)
   }, [])
 
   const refresh = useCallback(async () => {
     if (!token) {
+      hasLoadedRef.current = false
       setOrganizations([])
       setActiveOrganizationId(null)
       setProjects([])
@@ -99,12 +110,11 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       return
     }
 
-    setIsLoading(true)
+    if (!hasLoadedRef.current) setIsLoading(true)
     const [data, err] = await OrganizationService.list(token)
 
     if (err || !data) {
       setError(err ?? "Failed to load workspaces")
-      setOrganizations([])
       setIsLoading(false)
       return
     }
@@ -118,6 +128,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       writeStoredOrganizationId(nextId)
     }
 
+    hasLoadedRef.current = true
     setIsLoading(false)
   }, [token, resolveActiveId])
 
@@ -145,11 +156,18 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
   const setActiveWorkspace = useCallback(
     (organizationId: string) => {
+      if (!organizationId) return
+      if (
+        organizations.length > 0 &&
+        !organizations.some((org) => org.id === organizationId)
+      ) {
+        return
+      }
+
+      writeStoredOrganizationId(organizationId)
       if (organizationId === activeOrganizationId) return
-      if (!organizations.some((org) => org.id === organizationId)) return
 
       setActiveOrganizationId(organizationId)
-      writeStoredOrganizationId(organizationId)
 
       if (projectMatch) {
         navigate(routes.projects)
@@ -230,17 +248,23 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   )
 
   useEffect(() => {
+    if (authLoading) {
+      setIsLoading(true)
+      return
+    }
+
     if (!token) {
-      clearStoredOrganizationId()
+      hasLoadedRef.current = false
       setOrganizations([])
       setActiveOrganizationId(null)
       setProjects([])
       setError(null)
+      setIsLoading(false)
       return
     }
 
     void refresh()
-  }, [token, refresh])
+  }, [authLoading, token, refresh])
 
   useEffect(() => {
     void refreshProjects()

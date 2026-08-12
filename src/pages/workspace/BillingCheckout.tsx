@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import XenditCheckout from "../../components/billing/XenditCheckout"
 import WorkspacePage from "../../components/workspace/WorkspacePage"
@@ -11,16 +11,19 @@ import {
   writeCachedCheckout,
 } from "../../utils/checkoutSessionCache"
 import { routes } from "../../utils/navigation"
+import { writeStoredOrganizationId } from "../../utils/workspace"
 
 const BillingCheckout = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { token } = useAuth()
-  const { refresh } = useWorkspace()
+  const { token, isLoading: authLoading } = useAuth()
+  const { organizations, setActiveWorkspace, refresh } = useWorkspace()
 
-  const orgId = searchParams.get("orgId") ?? ""
+  const orgId = searchParams.get("orgId")?.trim() ?? ""
   const plan = searchParams.get("plan") ?? "pro"
   const resume = searchParams.get("resume") === "1"
+  const checkoutOrg =
+    organizations.find((org) => org.id === orgId) ?? null
 
   const returnUrl = useMemo(() => {
     const url = new URL(window.location.href)
@@ -32,13 +35,22 @@ const BillingCheckout = () => {
   const [error, setError] = useState<string | null>(null)
   const [completed, setCompleted] = useState(false)
 
+  useLayoutEffect(() => {
+    if (!orgId) return
+    writeStoredOrganizationId(orgId)
+    setActiveWorkspace(orgId)
+  }, [orgId, setActiveWorkspace])
+
   useEffect(() => {
+    if (authLoading) return
+
     if (!token || !orgId || plan !== "pro") {
       setError("Missing checkout context")
       return
     }
 
     let cancelled = false
+    setError(null)
 
     void (async () => {
       const cached = readCachedCheckout(orgId)
@@ -63,14 +75,18 @@ const BillingCheckout = () => {
     return () => {
       cancelled = true
     }
-  }, [token, orgId, plan, returnUrl])
+  }, [authLoading, token, orgId, plan, returnUrl])
 
   const handleSuccess = useCallback(async () => {
     setCompleted(true)
-    if (orgId) clearCachedCheckout(orgId)
+    if (orgId) {
+      clearCachedCheckout(orgId)
+      writeStoredOrganizationId(orgId)
+      setActiveWorkspace(orgId)
+    }
     await refresh()
     navigate(routes.billing, { replace: true })
-  }, [navigate, orgId, refresh])
+  }, [navigate, orgId, refresh, setActiveWorkspace])
 
   const handleFail = useCallback((message: string) => {
     setError(message)
@@ -80,7 +96,11 @@ const BillingCheckout = () => {
     <main className="flex-1 overflow-auto p-4 md:p-5 lg:p-6">
       <WorkspacePage
         title="Complete payment"
-        description="Pay ₱1,099 for 30 days of Pro on this workspace. Not auto-renewed."
+        description={
+          checkoutOrg
+            ? `Pay ₱1,099 for 30 days of Pro on ${checkoutOrg.name}. Not auto-renewed.`
+            : "Pay ₱1,099 for 30 days of Pro on this workspace. Not auto-renewed."
+        }
       >
         {completed ? (
           <p className="text-sm text-neutral-600 dark:text-neutral-300">

@@ -73,11 +73,12 @@ const plans: PlanCard[] = [
 const Billing = () => {
   const navigate = useNavigate()
   const { token } = useAuth()
-  const { activeOrganizationId } = useWorkspace()
+  const { activeOrganization, activeOrganizationId, isLoading } = useWorkspace()
   const [subscription, setSubscription] = useState<OrgSubscription | null>(null)
 
   useEffect(() => {
     if (!token || !activeOrganizationId) return
+    setSubscription(null)
     void BillingService.getSubscription(token, activeOrganizationId).then(([data]) => {
       if (data) setSubscription(data)
     })
@@ -102,19 +103,30 @@ const Billing = () => {
       (subscription.status === "ACTIVE" && isExpiredPeriod))
 
   const goToProCheckout = useCallback(() => {
-    if (!activeOrganizationId) return
-    navigate(`${routes.billingCheckout(activeOrganizationId)}`)
-  }, [activeOrganizationId, navigate])
+    if (!activeOrganizationId || isLoading) return
+    navigate(routes.billingCheckout(activeOrganizationId))
+  }, [activeOrganizationId, isLoading, navigate])
 
   return (
     <main className="flex-1 overflow-auto p-4 md:p-5 lg:p-6">
       <WorkspacePage
         title="Billing"
-        description="Plans and limits for organizations. Pro checkout is powered by Xendit."
+        description={
+          activeOrganization
+            ? `Plans and limits for ${activeOrganization.name}. Pro checkout is powered by Xendit.`
+            : "Plans and limits for organizations. Pro checkout is powered by Xendit."
+        }
       >
         {subscription ? (
           <p className="mb-4 text-sm text-neutral-500 dark:text-neutral-400">
-            Current workspace:{" "}
+            {activeOrganization ? (
+              <>
+                <span className="font-medium text-accent">{activeOrganization.name}</span>
+                {" is on "}
+              </>
+            ) : (
+              "Current plan: "
+            )}
             <span className="font-medium text-accent capitalize">
               {subscription.planName}
             </span>
@@ -178,7 +190,7 @@ const Billing = () => {
                 {plan.id === "pro" ? (
                   <Button
                     type="button"
-                    disabled={isProActive}
+                    disabled={isProActive || !activeOrganizationId || isLoading}
                     onClick={goToProCheckout}
                     className="w-full !py-2.5 text-sm"
                   >

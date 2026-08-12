@@ -112,6 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setToken(null)
         setAppBootstrap(null)
         bootstrappedFor.current = null
+        // Only clear workspace on a confirmed empty session — not while auth is hydrating.
         clearStoredOrganizationId()
     }, [])
 

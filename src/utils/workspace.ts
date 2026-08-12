@@ -24,6 +24,29 @@ export const clearStoredOrganizationId = (): void => {
   }
 }
 
+export const readOrganizationIdFromSearch = (
+  search?: string,
+): string | null => {
+  try {
+    const raw =
+      search ?? (typeof window === "undefined" ? "" : window.location.search)
+    const value = new URLSearchParams(raw).get("orgId")?.trim()
+    return value ? value : null
+  } catch {
+    return null
+  }
+}
+
+/** URL orgId wins on full page loads (checkout return), then localStorage. */
+export const readInitialOrganizationId = (): string | null => {
+  const fromUrl = readOrganizationIdFromSearch()
+  if (fromUrl) {
+    writeStoredOrganizationId(fromUrl)
+    return fromUrl
+  }
+  return readStoredOrganizationId()
+}
+
 /** Prefer Personal workspace, otherwise the first membership. */
 export const pickDefaultOrganizationId = (
   organizations: { id: string; name: string; slug: string }[],

@@ -85,7 +85,7 @@ const XenditCheckout = ({
     <div className="flex flex-col gap-4">
       <div
         ref={containerRef}
-        className="min-h-[220px] rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-950"
+        className="min-h-55 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-950"
       />
       {!loading ? (
         <button

@@ -23,8 +23,9 @@ const Button = ({
             onClick={onClick}
             disabled={disabled || loading}
             className={`
-                bg-accent-gradient
+                bg-accent
                 text-white
+                dark:text-black
                 py-3 px-4
                 rounded-lg
                 font-medium

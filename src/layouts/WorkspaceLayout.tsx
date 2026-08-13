@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Outlet, useMatch } from "react-router-dom"
+import { Outlet } from "react-router-dom"
 import AppSidebar from "../components/workspace/AppSidebar"
 import { useTheme } from "../contexts/ThemeContext"
 
@@ -9,14 +9,12 @@ type WorkspaceLayoutProps = {
 
 /**
  * Authenticated app shell.
- * Sidebar swaps between workspace and project nav based on the active route.
+ * Sidebar always shows workspace nav; project nav appends below on project routes.
  * Supports children (Home `/`) or nested Outlet.
  * Dark mode is scoped here so marketing/auth pages stay light.
  */
 const WorkspaceLayout = ({ children }: WorkspaceLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const projectMatch = useMatch({ path: "/projects/:projectId", end: false })
-  const mode = projectMatch ? "project" : "workspace"
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
 
@@ -29,7 +27,6 @@ const WorkspaceLayout = ({ children }: WorkspaceLayoutProps) => {
       style={{ colorScheme: isDark ? "dark" : "light" }}
     >
       <AppSidebar
-        mode={mode}
         open={sidebarOpen}
         onOpen={() => setSidebarOpen(true)}
         onClose={() => setSidebarOpen(false)}

@@ -4,33 +4,17 @@ import {
   HiOutlineArrowRightOnRectangle,
   HiOutlineBookOpen,
   HiOutlineBuildingOffice2,
-  HiOutlineComputerDesktop,
   HiOutlineDocumentText,
-  HiOutlineMoon,
   HiOutlineShieldCheck,
-  HiOutlineSun,
   HiOutlineUserCircle,
 } from "react-icons/hi2"
 import { useAuth } from "../../contexts/AuthContext"
-import { useTheme } from "../../contexts/ThemeContext"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
 import AuthService from "../../services/AuthService"
-import {
-  formatAppUserName,
-  type ThemePreference,
-} from "../../services/UserService"
+import { formatAppUserName } from "../../services/UserService"
 import { routes } from "../../utils/navigation"
+import ThemeToggle from "../common/ThemeToggle"
 import UserAvatar from "../common/UserAvatar"
-
-const themeOptions: {
-  value: ThemePreference
-  label: string
-  icon: typeof HiOutlineSun
-}[] = [
-  { value: "DEVICE", label: "Device", icon: HiOutlineComputerDesktop },
-  { value: "LIGHT", label: "Light", icon: HiOutlineSun },
-  { value: "DARK", label: "Dark", icon: HiOutlineMoon },
-]
 
 type ProfileMenuProps = {
   onNavigate?: () => void
@@ -43,7 +27,6 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
   const navigate = useNavigate()
   const { appBootstrap, refresh } = useAuth()
   const { activeOrganization } = useWorkspace()
-  const { themePreference, setThemePreference, isSaving } = useTheme()
   const [open, setOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -126,41 +109,14 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
             <p className="truncate px-1 text-[12px] text-neutral-500 dark:text-neutral-400">
               {email}
             </p>
-            <div
-              className="mt-2.5 inline-flex rounded-lg border border-neutral-200 bg-neutral-50 p-0.5 dark:border-neutral-700 dark:bg-neutral-800"
-              role="group"
-              aria-label="Theme preference"
-            >
-              {themeOptions.map(({ value, label, icon: Icon }) => {
-                const selected = themePreference === value
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    disabled={isSaving}
-                    aria-label={label}
-                    aria-pressed={selected}
-                    title={label}
-                    onClick={() => void setThemePreference(value)}
-                    className={[
-                      "grid size-8 place-content-center rounded-md transition-colors disabled:opacity-60",
-                      selected
-                        ? "bg-white text-accent shadow-sm dark:bg-neutral-950 dark:text-neutral-100"
-                        : "text-neutral-400 hover:text-accent dark:hover:text-neutral-100",
-                    ].join(" ")}
-                  >
-                    <Icon className="size-4" aria-hidden />
-                  </button>
-                )
-              })}
-            </div>
+            <ThemeToggle compact className="mt-2.5" />
           </div>
 
           <div className="border-b border-neutral-100 p-1.5 dark:border-neutral-800">
             <button
               type="button"
               role="menuitem"
-              onClick={() => go(routes.settings)}
+              onClick={() => go(`${routes.settings}#workspace`)}
               className={menuItemClass}
             >
               <div className="grid size-7 shrink-0 place-content-center rounded-full bg-neutral-900 text-[11px] font-semibold text-white dark:bg-neutral-100 dark:text-neutral-900">
@@ -177,7 +133,7 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
             <button
               type="button"
               role="menuitem"
-              onClick={() => go(routes.settings)}
+              onClick={() => go(`${routes.settings}#workspace`)}
               className={menuItemClass}
             >
               <HiOutlineBuildingOffice2 className="size-4 shrink-0 opacity-70" aria-hidden />
@@ -186,7 +142,7 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
             <button
               type="button"
               role="menuitem"
-              onClick={() => go(routes.settings)}
+              onClick={() => go(`${routes.settings}#account`)}
               className={menuItemClass}
             >
               <HiOutlineUserCircle className="size-4 shrink-0 opacity-70" aria-hidden />

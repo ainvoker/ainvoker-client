@@ -218,7 +218,7 @@ const Billing = () => {
           ))}
         </div>
 
-        <p className="mt-4 max-w-2xl text-xs text-neutral-400">
+        <p className="mt-4 max-w-2xl text-xs text-neutral-400 dark:text-neutral-500">
           Pro is ₱1,099 prepaid for 30 days (not auto-renewed). Pay with cards, e-wallet,
           or online banking via Xendit. Entitlements activate after Xendit confirms
           payment via webhook.

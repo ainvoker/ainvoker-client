@@ -124,7 +124,7 @@ const BillingCheckout = () => {
         ) : null}
 
         {!componentsSdkKey && !error && !completed ? (
-          <p className="text-sm text-neutral-500">Preparing checkout…</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Preparing checkout…</p>
         ) : null}
 
         <p className="mt-6 text-sm">

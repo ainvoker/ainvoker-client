@@ -38,6 +38,19 @@
   --background-image-accent-gradient: linear-gradient(135deg, #222, #eee);
   --background-image-accent-gradient-lg: linear-gradient(135deg, #222 60%, #eee);
   color-scheme: dark;
+
+  /* Xendit Components — inherit into checkout widgets under the workspace shell */
+  --xendit-color-primary: #f4f4f5;
+  --xendit-color-text: #f4f4f5;
+  --xendit-color-text-secondary: #a3a3a3;
+  --xendit-color-text-placeholder: #737373;
+  --xendit-color-disabled: #262626;
+  --xendit-color-danger: #f87171;
+  --xendit-color-border: #404040;
+  --xendit-color-background: #0a0a0a;
+  --xendit-focus-shadow: 0 0 0 2px rgba(244, 244, 245, 0.28);
+  --xendit-qr-foreground-color: #f4f4f5;
+  --xendit-qr-background-color: #171717;
 }
 
 html {

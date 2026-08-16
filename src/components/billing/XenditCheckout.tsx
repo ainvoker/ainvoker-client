@@ -4,6 +4,7 @@ import {
   XenditComponentsTest,
   type XenditFatalErrorEvent,
 } from "xendit-components-web"
+import { useTheme } from "../../contexts/ThemeContext"
 
 type XenditCheckoutProps = {
   componentsSdkKey: string
@@ -14,7 +15,35 @@ type XenditCheckoutProps = {
 
 const useMock =
   import.meta.env.VITE_XENDIT_USE_MOCK === "true" ||
-  import.meta.env.DEV && import.meta.env.VITE_XENDIT_USE_MOCK !== "false"
+  (import.meta.env.DEV && import.meta.env.VITE_XENDIT_USE_MOCK !== "false")
+
+function iframeAppearanceForTheme(theme: "light" | "dark") {
+  if (theme === "dark") {
+    return {
+      inputStyles: {
+        color: "#f4f4f5",
+        backgroundColor: "#0a0a0a",
+        fontFamily: "Poppins, sans-serif",
+        fontSize: "14px",
+      },
+      placeholderStyles: {
+        color: "#737373",
+      },
+    }
+  }
+
+  return {
+    inputStyles: {
+      color: "#111111",
+      backgroundColor: "#ffffff",
+      fontFamily: "Poppins, sans-serif",
+      fontSize: "14px",
+    },
+    placeholderStyles: {
+      color: "#a3a3a3",
+    },
+  }
+}
 
 const XenditCheckout = ({
   componentsSdkKey,
@@ -22,6 +51,7 @@ const XenditCheckout = ({
   onSuccess,
   onFail,
 }: XenditCheckoutProps) => {
+  const { resolvedTheme } = useTheme()
   const containerRef = useRef<HTMLDivElement>(null)
   const sdkRef = useRef<XenditComponents | null>(null)
   const [loading, setLoading] = useState(true)
@@ -29,11 +59,17 @@ const XenditCheckout = ({
   const [submitting, setSubmitting] = useState(false)
 
   useLayoutEffect(() => {
+    setLoading(true)
+    setReady(false)
+    setSubmitting(false)
+
+    const appearance = iframeAppearanceForTheme(resolvedTheme)
     const sdk = useMock
       ? new XenditComponentsTest({})
       : new XenditComponents({
           componentsSdkKey,
           resume,
+          iframeFieldAppearance: appearance,
         })
     sdkRef.current = sdk
 
@@ -75,7 +111,7 @@ const XenditCheckout = ({
       sdk.destroyComponent(channelPicker)
       sdkRef.current = null
     }
-  }, [componentsSdkKey, resume, onSuccess, onFail])
+  }, [componentsSdkKey, resume, resolvedTheme, onSuccess, onFail])
 
   const submit = useCallback(() => {
     sdkRef.current?.submit()
@@ -85,19 +121,21 @@ const XenditCheckout = ({
     <div className="flex flex-col gap-4">
       <div
         ref={containerRef}
-        className="min-h-55 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-950"
+        className="min-h-55 rounded-xl border border-neutral-200 bg-white p-4 text-accent dark:border-neutral-700 dark:bg-neutral-950"
       />
       {!loading ? (
         <button
           type="button"
           onClick={submit}
           disabled={!ready || submitting}
-          className="rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-opacity disabled:opacity-50"
+          className="rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-opacity disabled:opacity-50 dark:text-black"
         >
           {submitting ? "Processing…" : "Pay now"}
         </button>
       ) : (
-        <p className="text-sm text-neutral-500">Loading payment methods…</p>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          Loading payment methods…
+        </p>
       )}
     </div>
   )

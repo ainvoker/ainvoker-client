@@ -9,6 +9,7 @@ import {
   formatAppUserName,
   type ThemePreference,
 } from "../../services/UserService"
+import { isPersonalWorkspace } from "../../utils/workspace"
 
 const themeOptions: { value: ThemePreference; label: string }[] = [
   { value: "LIGHT", label: "Light" },
@@ -18,9 +19,6 @@ const themeOptions: { value: ThemePreference; label: string }[] = [
 
 const inputClassName =
   "w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-accent outline-none ring-accent/30 placeholder:text-neutral-400 focus:ring-2 dark:border-neutral-700 dark:bg-neutral-900 dark:placeholder:text-neutral-500"
-
-const isPersonalWorkspace = (slug: string | undefined) =>
-  Boolean(slug?.startsWith("personal-"))
 
 const Settings = () => {
   const { activeOrganization, role, isLoading, deleteWorkspace } = useWorkspace()

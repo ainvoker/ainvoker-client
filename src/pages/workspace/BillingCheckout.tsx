@@ -98,8 +98,8 @@ const BillingCheckout = () => {
         title="Complete payment"
         description={
           checkoutOrg
-            ? `Pay ₱1,099 for 30 days of Pro on ${checkoutOrg.name}. Not auto-renewed.`
-            : "Pay ₱1,099 for 30 days of Pro on this workspace. Not auto-renewed."
+            ? `Subscribe to Pro on ${checkoutOrg.name} for ₱1,099 / month. Auto-renews until you cancel.`
+            : "Subscribe to Pro for ₱1,099 / month. Auto-renews until you cancel."
         }
       >
         {completed ? (

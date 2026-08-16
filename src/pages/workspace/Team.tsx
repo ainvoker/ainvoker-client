@@ -1,9 +1,16 @@
+import { Navigate } from "react-router-dom"
 import WorkspacePage from "../../components/workspace/WorkspacePage"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
+import { routes } from "../../utils/navigation"
+import { isPersonalWorkspace } from "../../utils/workspace"
 
 const Team = () => {
   const { activeOrganization, role, isLoading } = useWorkspace()
   const workspaceName = activeOrganization?.name ?? "your workspace"
+
+  if (!isLoading && isPersonalWorkspace(activeOrganization?.slug)) {
+    return <Navigate to={routes.dashboard} replace />
+  }
 
   return (
     <main className="flex-1 overflow-auto p-4 md:p-5 lg:p-6">

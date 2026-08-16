@@ -47,6 +47,9 @@ export const readInitialOrganizationId = (): string | null => {
   return readStoredOrganizationId()
 }
 
+export const isPersonalWorkspace = (slug: string | undefined | null) =>
+  Boolean(slug?.startsWith("personal-"))
+
 /** Prefer Personal workspace, otherwise the first membership. */
 export const pickDefaultOrganizationId = (
   organizations: { id: string; name: string; slug: string }[],

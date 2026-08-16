@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Link, Outlet, useLocation } from "react-router-dom"
 import { HiOutlineBars3, HiOutlineXMark } from "react-icons/hi2"
 import Logo from "../assets/logo.svg"
+import PublicAuthActions from "../components/common/PublicAuthActions"
 import DocsSidebar from "../components/docs/DocsSidebar"
 
 const DocsLayout = () => {
@@ -35,20 +36,7 @@ const DocsLayout = () => {
               Docs
             </Link>
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to="/login"
-              className="rounded-lg px-3 py-1.5 text-sm font-medium text-[#ccc] hover:text-white"
-            >
-              Sign in
-            </Link>
-            <Link
-              to="/signup"
-              className="rounded-lg bg-white px-3 py-1.5 text-sm font-semibold text-accent hover:brightness-95"
-            >
-              Sign up
-            </Link>
-          </div>
+          <PublicAuthActions />
         </div>
       </header>
 

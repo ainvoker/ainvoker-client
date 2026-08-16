@@ -1,5 +1,7 @@
 import { NavLink, useMatch } from "react-router-dom"
-import { getProjectNav, workspaceNav } from "../../utils/navigation"
+import { getProjectNav, routes, workspaceNav } from "../../utils/navigation"
+import { useWorkspace } from "../../contexts/WorkspaceContext"
+import { isPersonalWorkspace } from "../../utils/workspace"
 import Logo from "../../assets/logo.svg"
 import ProfileMenu from "./ProfileMenu"
 import ProjectSwitcher from "./ProjectSwitcher"
@@ -21,9 +23,15 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
   ].join(" ")
 
 const AppSidebar = ({ open, onClose, onOpen }: AppSidebarProps) => {
+  const { activeOrganization } = useWorkspace()
   const projectMatch = useMatch({ path: "/projects/:projectId", end: false })
   const projectId = projectMatch?.params.projectId ?? ""
   const projectItems = projectId ? getProjectNav(projectId) : []
+  const hideTeam =
+    !activeOrganization || isPersonalWorkspace(activeOrganization.slug)
+  const navItems = hideTeam
+    ? workspaceNav.filter((item) => item.path !== routes.team)
+    : workspaceNav
 
   return (
     <>
@@ -86,7 +94,7 @@ const AppSidebar = ({ open, onClose, onOpen }: AppSidebarProps) => {
             <p className="px-2 pb-1 text-[10px] font-medium tracking-widest text-neutral-400 uppercase">
               Workspace
             </p>
-            {workspaceNav.map(({ label, path, icon: Icon, end }) => (
+            {navItems.map(({ label, path, icon: Icon, end }) => (
               <NavLink
                 key={path}
                 to={path}

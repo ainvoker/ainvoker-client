@@ -32,7 +32,12 @@ import {
 } from "../utils/workspace"
 
 function isSubscriptionActive(subscription: OrgSubscription | null): boolean {
-  if (!subscription || subscription.status !== "ACTIVE") return false
+  if (
+    !subscription ||
+    (subscription.status !== "ACTIVE" && subscription.status !== "PAST_DUE")
+  ) {
+    return false
+  }
   if (!subscription.expiresAt) return true
   const expires = Date.parse(subscription.expiresAt)
   if (Number.isNaN(expires)) return true

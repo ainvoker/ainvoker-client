@@ -8,6 +8,7 @@ import ProtectedRoutes from "./layouts/ProtectedRoutes"
 import WorkspaceLayout from "./layouts/WorkspaceLayout"
 import ProjectLayout from "./layouts/ProjectLayout"
 import DocsLayout from "./layouts/DocsLayout"
+import LegalLayout from "./layouts/LegalLayout"
 import Home from "./pages/Home"
 import Signup from "./pages/Signup"
 import VerifyEmail from "./pages/VerifyEmail"
@@ -50,8 +51,10 @@ function App() {
             <WorkspaceProvider>
               <Routes>
                 <Route index element={<Home />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/privacy" element={<Privacy />} />
+                <Route element={<LegalLayout />}>
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                </Route>
                 <Route path="/forgot-password" element={<ForgotPassword />} />
 
                 <Route path="docs" element={<DocsLayout />}>

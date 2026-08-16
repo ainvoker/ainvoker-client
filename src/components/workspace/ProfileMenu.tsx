@@ -2,10 +2,12 @@ import { useEffect, useId, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import {
   HiOutlineArrowRightOnRectangle,
+  HiOutlineBookOpen,
   HiOutlineBuildingOffice2,
   HiOutlineComputerDesktop,
   HiOutlineDocumentText,
   HiOutlineMoon,
+  HiOutlineShieldCheck,
   HiOutlineSun,
   HiOutlineUserCircle,
 } from "react-icons/hi2"
@@ -194,7 +196,19 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
 
           <div className="border-b border-neutral-100 p-1.5 dark:border-neutral-800">
             <Link
-              to="/terms"
+              to={routes.docs}
+              role="menuitem"
+              onClick={() => {
+                setOpen(false)
+                onNavigate?.()
+              }}
+              className={menuItemClass}
+            >
+              <HiOutlineBookOpen className="size-4 shrink-0 opacity-70" aria-hidden />
+              Documentation
+            </Link>
+            <Link
+              to={routes.terms}
               role="menuitem"
               onClick={() => {
                 setOpen(false)
@@ -206,7 +220,7 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
               Terms & policies
             </Link>
             <Link
-              to="/privacy"
+              to={routes.privacy}
               role="menuitem"
               onClick={() => {
                 setOpen(false)
@@ -214,7 +228,7 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
               }}
               className={menuItemClass}
             >
-              <HiOutlineDocumentText className="size-4 shrink-0 opacity-70" aria-hidden />
+              <HiOutlineShieldCheck className="size-4 shrink-0 opacity-70" aria-hidden />
               Privacy
             </Link>
           </div>

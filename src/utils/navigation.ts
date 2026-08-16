@@ -37,6 +37,9 @@ export const routes = {
     `/billing/checkout?orgId=${encodeURIComponent(orgId)}&plan=${plan}`,
   team: "/team",
   settings: "/settings",
+  docs: "/docs",
+  terms: "/terms",
+  privacy: "/privacy",
 } as const
 
 export const workspaceNav: NavLinkItem[] = [
@@ -44,7 +47,6 @@ export const workspaceNav: NavLinkItem[] = [
   { label: "Projects", path: routes.projects, icon: HiOutlineFolder, end: true },
   { label: "Billing", path: routes.billing, icon: HiOutlineCreditCard },
   { label: "Team", path: routes.team, icon: HiOutlineUsers },
-  { label: "Settings", path: routes.settings, icon: HiOutlineCog6Tooth },
 ]
 
 export const getProjectNav = (projectId: string): NavLinkItem[] => [

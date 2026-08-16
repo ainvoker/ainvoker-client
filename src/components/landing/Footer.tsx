@@ -11,9 +11,9 @@ const navLinks = [
 ]
 
 const siteLinks = [
-    { label: "TOS", to: "/terms" },
-    { label: "Privacy", to: "/privacy" },
-    { label: "Blog", to: "#" },
+    { label: "Terms of Service", to: "/terms" },
+    { label: "Privacy Policy", to: "/privacy" },
+    { label: "Documentation", to: "/docs" },
 ]
 
 const Footer = () => {

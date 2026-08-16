@@ -10,7 +10,8 @@ const Nav = () => {
             </div>
             <div className="font-sans text-2xl font-semibold">Ainvoker</div>
         </Link>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+            <Link to="/docs" className="px-3 py-2 font-semibold text-md grid place-content-center rounded-lg border border-transparent text-center text-[#ccc] hover:text-white hover:border-white">Docs</Link>
             <Link to={'/login'} className="px-4 py-2 font-semibold text-md grid place-content-center rounded-lg border border-transparent text-center hover:border-white" >Sign in</Link>
             <Link to={'/signup'} className="bg-white font-semibold text-md grid place-content-center text-accent px-4 py-2 rounded-lg text-center hover:brightness-95" >Sign up</Link>
         </div>

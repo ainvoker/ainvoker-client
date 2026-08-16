@@ -5,7 +5,7 @@ import Logo from "../../assets/logo.svg"
 const navLinks = [
     { label: "Home", to: "/" },
     { label: "Dashboard", to: "/" },
-    { label: "Documentation", to: "/v1/docs" },
+    { label: "Documentation", to: "/docs" },
     { label: "Pricing", to: "#pricing" },
     { label: "Contact", to: "#contact" },
 ]

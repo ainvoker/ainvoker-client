@@ -33,8 +33,8 @@ const Services = () => {
         }
         </div>
         <Reveal className="flex justify-center pt-12" delay={100}>
-            <Link to="/v1/docs" className="flex items-center gap-2 text-[#ccc] hover:text-white hover:underline transition">
-                Explore unified tools for business AI
+            <Link to="/docs" className="flex items-center gap-2 text-[#ccc] hover:text-white hover:underline transition">
+                Explore the documentation
                 <GoArrowRight size={15}/>
             </Link>
         </Reveal>

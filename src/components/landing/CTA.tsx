@@ -34,10 +34,10 @@ const CTA = () => {
                 </button>
             </div>
             <Link 
-                to="/v1/docs" 
+                to="/docs" 
                 className="bg-white px-4 py-2 flex justify-center gap-2 text-accent text-sm rounded-lg items-center font-semibold hover:brightness-95 transition"
             >
-                View Demo
+                View Docs
                 <GoArrowRight size={15} />
             </Link>
         </div>

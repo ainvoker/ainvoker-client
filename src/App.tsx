@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom"
 
 import { AuthProvider } from "./contexts/AuthContext"
 import { ThemeProvider } from "./contexts/ThemeContext"
@@ -7,6 +7,7 @@ import GuestRoutes from "./layouts/GuestRoutes"
 import ProtectedRoutes from "./layouts/ProtectedRoutes"
 import WorkspaceLayout from "./layouts/WorkspaceLayout"
 import ProjectLayout from "./layouts/ProjectLayout"
+import DocsLayout from "./layouts/DocsLayout"
 import Home from "./pages/Home"
 import Signup from "./pages/Signup"
 import VerifyEmail from "./pages/VerifyEmail"
@@ -29,6 +30,16 @@ import Actions from "./pages/workspace/projects/Actions"
 import Analytics from "./pages/workspace/projects/Analytics"
 import Logs from "./pages/workspace/projects/Logs"
 import ProjectSettings from "./pages/workspace/projects/Settings"
+import GettingStarted from "./pages/docs/GettingStarted"
+import Authentication from "./pages/docs/Authentication"
+import ApiKeysDocs from "./pages/docs/ApiKeys"
+import TextChat from "./pages/docs/TextChat"
+import ModelsDocs from "./pages/docs/Models"
+import Limits from "./pages/docs/Limits"
+import Errors from "./pages/docs/Errors"
+import SdkOverview from "./pages/docs/SdkOverview"
+import SdkNodejs from "./pages/docs/SdkNodejs"
+import SdkBrowser from "./pages/docs/SdkBrowser"
 
 function App() {
   return (
@@ -42,6 +53,21 @@ function App() {
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
+
+                <Route path="docs" element={<DocsLayout />}>
+                  <Route index element={<Navigate to="getting-started" replace />} />
+                  <Route path="getting-started" element={<GettingStarted />} />
+                  <Route path="authentication" element={<Authentication />} />
+                  <Route path="api-keys" element={<ApiKeysDocs />} />
+                  <Route path="text-chat" element={<TextChat />} />
+                  <Route path="models" element={<ModelsDocs />} />
+                  <Route path="limits" element={<Limits />} />
+                  <Route path="errors" element={<Errors />} />
+                  <Route path="sdk" element={<SdkOverview />} />
+                  <Route path="sdk/nodejs" element={<SdkNodejs />} />
+                  <Route path="sdk/browser" element={<SdkBrowser />} />
+                </Route>
+                <Route path="v1/docs/*" element={<Navigate to="/docs" replace />} />
 
                 <Route path="/" element={<GuestRoutes />}>
                   <Route path="signup" element={<Signup />} />

@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import WorkspacePage from "../../components/workspace/WorkspacePage"
 import CreateProjectModal from "../../components/workspace/CreateProjectModal"
+import Skeleton from "../../components/common/Skeleton"
 import { routes } from "../../utils/navigation"
 import {
   formatProjectEnvironment,
@@ -52,7 +53,24 @@ const Projects = () => {
         ) : null}
 
         {busy && projects.length === 0 ? (
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">Loading projects…</p>
+          <div
+            className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+            aria-busy="true"
+            role="status"
+          >
+            <span className="sr-only">Loading projects…</span>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-2xl border border-neutral-200/80 bg-white p-5 dark:border-neutral-700 dark:bg-neutral-900"
+              >
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="mt-2 h-3 w-20" />
+                <Skeleton className="mt-4 h-3 w-full" />
+                <Skeleton className="mt-2 h-3 w-2/3" />
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {projects.map((project) => (

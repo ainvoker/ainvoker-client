@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react"
 import WorkspacePage from "../../components/workspace/WorkspacePage"
 import UserAvatar from "../../components/common/UserAvatar"
 import Button from "../../components/common/Button"
+import InlineLoader from "../../components/common/InlineLoader"
 import { useAuth } from "../../contexts/AuthContext"
 import { useTheme } from "../../contexts/ThemeContext"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
@@ -74,9 +75,7 @@ const Settings = () => {
           <section className="rounded-2xl border border-neutral-200/80 bg-white p-5 dark:border-neutral-700 dark:bg-neutral-900">
             <h2 className="text-sm font-semibold text-accent">Workspace</h2>
             {isLoading && !activeOrganization ? (
-              <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
-                Loading…
-              </p>
+              <InlineLoader label="Loading…" className="mt-3" />
             ) : activeOrganization ? (
               <dl className="mt-3 space-y-3 text-sm">
                 <div>

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Button from "../../components/common/Button"
+import InlineLoader from "../../components/common/InlineLoader"
+import Skeleton, { SkeletonCard } from "../../components/common/Skeleton"
 import WorkspacePage from "../../components/workspace/WorkspacePage"
 import { useAuth } from "../../contexts/AuthContext"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
@@ -136,12 +138,17 @@ const Billing = () => {
   const [canceling, setCanceling] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [pageLoading, setPageLoading] = useState(true)
 
   const canManageBilling = role === "owner" || role === "admin"
 
   const reload = useCallback(async () => {
-    if (!token || !activeOrganizationId) return
+    if (!token || !activeOrganizationId) {
+      setPageLoading(false)
+      return
+    }
     setLoadError(null)
+    setPageLoading(true)
 
     const [sub, subErr] = await BillingService.getSubscription(
       token,
@@ -169,6 +176,8 @@ const Billing = () => {
     } else {
       setInvoices([])
     }
+
+    setPageLoading(false)
   }, [token, activeOrganizationId, canManageBilling])
 
   useEffect(() => {
@@ -270,6 +279,23 @@ const Billing = () => {
             </div>
           ) : null}
 
+          {pageLoading && !subscription ? (
+            <div className="space-y-4" aria-busy="true" role="status">
+              <span className="sr-only">Loading billing…</span>
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+              <div className={cardClass}>
+                <Skeleton className="h-3 w-20" />
+                <div className="mt-4 space-y-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-8 w-full" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
           {/* Current plan */}
           <section className={cardClass}>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -303,9 +329,7 @@ const Billing = () => {
                     ) : null}
                   </>
                 ) : (
-                  <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
-                    Loading plan…
-                  </p>
+                  <InlineLoader label="Loading plan…" className="mt-3" />
                 )}
               </div>
               <Button
@@ -676,6 +700,8 @@ const Billing = () => {
             Pro is ₱1,099 per month and auto-renews via Xendit until canceled.
             Entitlements update after Xendit confirms payment.
           </p>
+            </>
+          )}
         </div>
       </WorkspacePage>
     </main>

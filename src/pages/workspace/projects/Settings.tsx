@@ -7,6 +7,8 @@ import {
 } from "react-icons/hi2"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import Button from "../../../components/common/Button"
+import InlineLoader from "../../../components/common/InlineLoader"
+import Skeleton from "../../../components/common/Skeleton"
 import { useAuth } from "../../../contexts/AuthContext"
 import { useWorkspace } from "../../../contexts/WorkspaceContext"
 import AllowedOriginService, {
@@ -310,9 +312,17 @@ const ProjectSettings = () => {
           ) : null}
 
           {isProjectLoading && !project ? (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              Loading project…
-            </p>
+            <div
+              className="space-y-3 rounded-2xl border border-neutral-200/80 bg-white p-5 dark:border-neutral-700 dark:bg-neutral-900"
+              aria-busy="true"
+              role="status"
+            >
+              <span className="sr-only">Loading project…</span>
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-10 w-full rounded-xl" />
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-10 w-full rounded-xl" />
+            </div>
           ) : project ? (
             <form
               onSubmit={(event) => void handleSaveGeneral(event)}
@@ -475,9 +485,7 @@ const ProjectSettings = () => {
           ) : null}
 
           {isOriginsLoading && origins.length === 0 ? (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              Loading allowed origins…
-            </p>
+            <InlineLoader label="Loading allowed origins…" />
           ) : origins.length === 0 && !originsError ? (
             <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white/50 px-6 py-12 text-center dark:border-neutral-600 dark:bg-neutral-900/50">
               <HiOutlineGlobeAlt

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
 import { formatAppUserName } from "../../services/UserService"
 import { routes } from "../../utils/navigation"
+import Skeleton from "./Skeleton"
 import UserAvatar from "./UserAvatar"
 
 const PublicAuthActions = () => {
@@ -9,10 +10,7 @@ const PublicAuthActions = () => {
 
   if (isLoading) {
     return (
-      <div
-        className="size-8 shrink-0 rounded-full bg-[#2a2a2a]"
-        aria-hidden
-      />
+      <Skeleton className="size-8 shrink-0 rounded-full bg-[#2a2a2a] dark:bg-neutral-700" />
     )
   }
 

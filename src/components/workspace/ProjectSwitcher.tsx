@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react"
 import { Link, useNavigate, useParams, useLocation } from "react-router-dom"
 import { HiChevronDown, HiOutlineFolderPlus, HiOutlineSquares2X2 } from "react-icons/hi2"
+import InlineLoader from "../common/InlineLoader"
+import Spinner from "../common/Spinner"
 import {
   getProjectById,
   formatProjectEnvironment,
@@ -120,7 +122,12 @@ const ProjectSwitcher = ({ onNavigate }: ProjectSwitcherProps) => {
             <p className="truncate text-[10px] font-medium tracking-widest text-neutral-400 uppercase">
               Project
             </p>
-            <p className="mt-0.5 truncate text-[13px] font-semibold text-accent">{label}</p>
+            <p className="mt-0.5 flex items-center gap-1.5 truncate text-[13px] font-semibold text-accent">
+              {isProjectsLoading && !current && !resolvedName ? (
+                <Spinner size="sm" className="shrink-0" />
+              ) : null}
+              <span className="truncate">{label}</span>
+            </p>
             {environment ? (
               <p className="mt-0.5 truncate text-[11px] tracking-wide text-neutral-400">
                 {environment}
@@ -175,9 +182,9 @@ const ProjectSwitcher = ({ onNavigate }: ProjectSwitcherProps) => {
                 All projects
               </p>
               {isProjectsLoading && projects.length === 0 ? (
-                <p className="px-3 py-2 text-[13px] text-neutral-500 dark:text-neutral-400">
-                  Loading…
-                </p>
+                <div className="px-3 py-2">
+                  <InlineLoader label="Loading…" />
+                </div>
               ) : null}
               {!isProjectsLoading && projects.length === 0 ? (
                 <p className="px-3 py-2 text-[13px] text-neutral-500 dark:text-neutral-400">

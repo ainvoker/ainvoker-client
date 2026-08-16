@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import InlineLoader from "../../components/common/InlineLoader"
 import XenditCheckout from "../../components/billing/XenditCheckout"
 import WorkspacePage from "../../components/workspace/WorkspacePage"
 import { useAuth } from "../../contexts/AuthContext"
@@ -124,7 +125,7 @@ const BillingCheckout = () => {
         ) : null}
 
         {!componentsSdkKey && !error && !completed ? (
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">Preparing checkout…</p>
+          <InlineLoader label="Preparing checkout…" className="py-2" />
         ) : null}
 
         <p className="mt-6 text-sm">

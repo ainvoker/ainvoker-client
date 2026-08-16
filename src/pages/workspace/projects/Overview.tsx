@@ -9,6 +9,7 @@ import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import StatCard from "../../../components/workspace/StatCard"
 import QuotaBars from "../../../components/workspace/QuotaBars"
 import RecentRequestsTable from "../../../components/workspace/RecentRequestsTable"
+import Skeleton, { SkeletonCard } from "../../../components/common/Skeleton"
 import { useAuth } from "../../../contexts/AuthContext"
 import { useWorkspace } from "../../../contexts/WorkspaceContext"
 import UsageService, { type ProjectUsage } from "../../../services/UsageService"
@@ -109,9 +110,26 @@ const Overview = () => {
       ) : null}
 
       {isLoading && !usage ? (
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          Loading overview…
-        </p>
+        <div className="flex flex-col gap-5" aria-busy="true" role="status">
+          <span className="sr-only">Loading overview…</span>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-2xl border border-neutral-200/80 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900"
+              >
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="mt-3 h-7 w-16" />
+              </div>
+            ))}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 rounded-2xl" />
+            ))}
+          </div>
+          <SkeletonCard />
+        </div>
       ) : (
         <div className="flex flex-col gap-5">
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

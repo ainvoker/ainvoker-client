@@ -1,15 +1,12 @@
 import { Navigate, Outlet } from "react-router-dom"
+import PageLoader from "../components/common/PageLoader"
 import { useAuth } from "../contexts/AuthContext"
 
 const ProtectedRoutes = () => {
     const { user, isLoading } = useAuth()
 
     if (isLoading) {
-        return (
-            <div className="grid min-h-screen place-content-center bg-[#f4f4f5] text-sm text-neutral-500">
-                Loading workspace…
-            </div>
-        )
+        return <PageLoader fullScreen label="Loading workspace…" />
     }
 
     if (!user) return <Navigate to="/" replace />

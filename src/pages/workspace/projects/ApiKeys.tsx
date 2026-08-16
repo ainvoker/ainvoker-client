@@ -5,6 +5,7 @@ import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import CreateApiKeyModal from "../../../components/workspace/CreateApiKeyModal"
 import RevealApiKeyModal from "../../../components/workspace/RevealApiKeyModal"
 import Button from "../../../components/common/Button"
+import Skeleton from "../../../components/common/Skeleton"
 import { useAuth } from "../../../contexts/AuthContext"
 import { useWorkspace } from "../../../contexts/WorkspaceContext"
 import ApiKeyService, {
@@ -194,9 +195,25 @@ const ApiKeys = () => {
           ) : null}
 
           {isLoading && keys.length === 0 ? (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              Loading API keys…
-            </p>
+            <div
+              className="overflow-hidden rounded-2xl border border-neutral-200/80 bg-white dark:border-neutral-700 dark:bg-neutral-900"
+              aria-busy="true"
+              role="status"
+            >
+              <span className="sr-only">Loading API keys…</span>
+              <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 px-4 py-4">
+                    <Skeleton className="size-8 rounded-lg" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-3 w-40" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <Skeleton className="h-8 w-20 rounded-lg" />
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : keys.length === 0 && !error ? (
             <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white/50 px-6 py-12 text-center dark:border-neutral-600 dark:bg-neutral-900/50">
               <HiOutlineKey

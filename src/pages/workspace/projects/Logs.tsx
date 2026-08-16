@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom"
 import { HiOutlineDocumentText } from "react-icons/hi2"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import AiRequestDetailModal from "../../../components/workspace/AiRequestDetailModal"
+import Skeleton from "../../../components/common/Skeleton"
 import { useAuth } from "../../../contexts/AuthContext"
 import AiRequestService, {
   type AiRequestDetail,
@@ -199,9 +200,18 @@ const Logs = () => {
           ) : null}
 
           {isLoading && items.length === 0 ? (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              Loading logs…
-            </p>
+            <div
+              className="overflow-hidden rounded-2xl border border-neutral-200/80 bg-white dark:border-neutral-700 dark:bg-neutral-900"
+              aria-busy="true"
+              role="status"
+            >
+              <span className="sr-only">Loading logs…</span>
+              <div className="space-y-3 p-4">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <Skeleton key={i} className="h-8 w-full" />
+                ))}
+              </div>
+            </div>
           ) : items.length === 0 && !error ? (
             <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white/50 px-6 py-12 text-center dark:border-neutral-600 dark:bg-neutral-900/50">
               <HiOutlineDocumentText

@@ -4,6 +4,8 @@ import {
   XenditComponentsTest,
   type XenditFatalErrorEvent,
 } from "xendit-components-web"
+import InlineLoader from "../common/InlineLoader"
+import Spinner from "../common/Spinner"
 import { useTheme } from "../../contexts/ThemeContext"
 
 type XenditCheckoutProps = {
@@ -128,14 +130,16 @@ const XenditCheckout = ({
           type="button"
           onClick={submit}
           disabled={!ready || submitting}
-          className="rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-opacity disabled:opacity-50 dark:text-black"
+          aria-busy={submitting || undefined}
+          className="flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-opacity disabled:opacity-50 dark:text-black"
         >
+          {submitting ? (
+            <Spinner size="sm" className="text-white dark:text-black" />
+          ) : null}
           {submitting ? "Processing…" : "Pay now"}
         </button>
       ) : (
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          Loading payment methods…
-        </p>
+        <InlineLoader label="Loading payment methods…" />
       )}
     </div>
   )

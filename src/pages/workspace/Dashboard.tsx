@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { HiOutlineArrowRight, HiOutlineFolder } from "react-icons/hi2"
+import Skeleton, { SkeletonCard } from "../../components/common/Skeleton"
 import WorkspacePage from "../../components/workspace/WorkspacePage"
 import StatCard from "../../components/workspace/StatCard"
 import QuotaBars from "../../components/workspace/QuotaBars"
@@ -20,6 +21,32 @@ import {
   projectStatusBadgeClass,
 } from "../../utils/projects"
 import { routes } from "../../utils/navigation"
+
+const DashboardSkeleton = () => (
+  <div className="flex flex-col gap-5" aria-busy="true" role="status">
+    <span className="sr-only">Loading dashboard…</span>
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div
+          key={i}
+          className="rounded-2xl border border-neutral-200/80 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900"
+        >
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="mt-3 h-7 w-16" />
+          <Skeleton className="mt-2 h-3 w-28" />
+        </div>
+      ))}
+    </div>
+    <SkeletonCard />
+    <div className="overflow-hidden rounded-2xl border border-neutral-200/80 bg-white dark:border-neutral-700 dark:bg-neutral-900">
+      <div className="space-y-3 p-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-8 w-full" />
+        ))}
+      </div>
+    </div>
+  </div>
+)
 
 const Dashboard = () => {
   const { token } = useAuth()
@@ -84,9 +111,7 @@ const Dashboard = () => {
         ) : null}
 
         {busy && !usage ? (
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            Loading dashboard…
-          </p>
+          <DashboardSkeleton />
         ) : (
           <div className="flex flex-col gap-5">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

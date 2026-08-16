@@ -6,6 +6,7 @@ import {
   atomOneDark,
   atomOneLight,
 } from "react-syntax-highlighter/dist/esm/styles/hljs"
+import InlineLoader from "../common/InlineLoader"
 import { useTheme } from "../../contexts/ThemeContext"
 import type { AiRequestDetail } from "../../services/AiRequestService"
 
@@ -179,9 +180,7 @@ const AiRequestDetailModal = ({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           {isLoading && !detail ? (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              Loading request…
-            </p>
+            <InlineLoader label="Loading request…" className="py-6" />
           ) : null}
 
           {error ? (

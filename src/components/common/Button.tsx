@@ -1,28 +1,33 @@
-import React from "react";
+import React from "react"
+import Spinner from "./Spinner"
 
 type ButtonProps = {
-    children: React.ReactNode;
-    type?: "button" | "submit" | "reset";
-    disabled?: boolean;
-    loading?: boolean;
-    onClick?: () => void;
-    className?: string;
-};
+  children: React.ReactNode
+  type?: "button" | "submit" | "reset"
+  disabled?: boolean
+  loading?: boolean
+  /** Shown next to the spinner while loading; defaults to children. */
+  loadingLabel?: React.ReactNode
+  onClick?: () => void
+  className?: string
+}
 
 const Button = ({
-    children,
-    type = "button",
-    disabled = false,
-    loading = false,
-    onClick,
-    className = "",
+  children,
+  type = "button",
+  disabled = false,
+  loading = false,
+  loadingLabel,
+  onClick,
+  className = "",
 }: ButtonProps) => {
-    return (
-        <button
-            type={type}
-            onClick={onClick}
-            disabled={disabled || loading}
-            className={`
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      className={`
                 bg-accent
                 text-white
                 dark:text-black
@@ -37,10 +42,20 @@ const Button = ({
                 flex items-center justify-center gap-2
                 ${className}
             `}
-        >
-            {loading ? "Loading..." : children}
-        </button>
-    );
-};
+    >
+      {loading ? (
+        <>
+          <Spinner
+            size="sm"
+            className="text-white dark:text-black"
+          />
+          <span>{loadingLabel ?? children}</span>
+        </>
+      ) : (
+        children
+      )}
+    </button>
+  )
+}
 
-export default Button;
+export default Button

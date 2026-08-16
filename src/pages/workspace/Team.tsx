@@ -1,4 +1,5 @@
 import { Navigate } from "react-router-dom"
+import InlineLoader from "../../components/common/InlineLoader"
 import WorkspacePage from "../../components/workspace/WorkspacePage"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
 import { routes } from "../../utils/navigation"
@@ -20,7 +21,7 @@ const Team = () => {
       >
         <div className="max-w-xl rounded-2xl border border-neutral-200/80 bg-white p-5 dark:border-neutral-700 dark:bg-neutral-900">
           {isLoading && !activeOrganization ? (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">Loading workspace…</p>
+            <InlineLoader label="Loading workspace…" />
           ) : (
             <>
               <p className="text-sm text-neutral-600 dark:text-neutral-300">

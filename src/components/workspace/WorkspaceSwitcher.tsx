@@ -1,5 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react"
 import { HiChevronDown, HiOutlinePlus } from "react-icons/hi2"
+import InlineLoader from "../common/InlineLoader"
+import Spinner from "../common/Spinner"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
 import CreateWorkspaceModal from "./CreateWorkspaceModal"
 import type { CreateOrganizationInput } from "../../services/OrganizationService"
@@ -56,7 +58,12 @@ const WorkspaceSwitcher = () => {
           className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800"
         >
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-semibold text-accent">{label}</p>
+            <p className="flex items-center gap-1.5 truncate text-[13px] font-semibold text-accent">
+              {isLoading && !activeOrganization ? (
+                <Spinner size="sm" className="shrink-0" />
+              ) : null}
+              <span className="truncate">{label}</span>
+            </p>
             {activeOrganization?.role ? (
               <p className="mt-0.5 truncate text-[11px] tracking-wide text-neutral-400 capitalize">
                 {activeOrganization.role}
@@ -83,6 +90,11 @@ const WorkspaceSwitcher = () => {
               Workspaces
             </p>
             <div className="max-h-64 overflow-y-auto pb-1">
+              {organizations.length === 0 && isLoading ? (
+                <div className="px-3 py-2">
+                  <InlineLoader label="Loading…" />
+                </div>
+              ) : null}
               {organizations.length === 0 && !isLoading ? (
                 <p className="px-3 py-2 text-[13px] text-neutral-500">No workspaces yet</p>
               ) : null}

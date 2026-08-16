@@ -8,7 +8,7 @@ const Nav = () => {
             <div className="h-7">
                 <img src={Logo} alt="AInvoker Logo" className="h-full" />
             </div>
-            <div className="font-sans text-2xl font-semibold">Ainvoker</div>
+            <div className="font-sans text-2xl font-semibold">AInvoker</div>
         </Link>
         <div className="flex items-center gap-2">
             <Link to="/docs" className="px-3 py-2 font-semibold text-md grid place-content-center rounded-lg border border-transparent text-center text-[#ccc] hover:text-white hover:border-white">Docs</Link>

@@ -3,7 +3,12 @@ import { Link, useNavigate } from "react-router-dom"
 import WorkspacePage from "../../components/workspace/WorkspacePage"
 import CreateProjectModal from "../../components/workspace/CreateProjectModal"
 import { routes } from "../../utils/navigation"
-import { formatProjectEnvironment } from "../../utils/projects"
+import {
+  formatProjectEnvironment,
+  formatProjectStatus,
+  isProjectInactive,
+  projectStatusBadgeClass,
+} from "../../utils/projects"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
 import type { CreateProjectInput } from "../../services/ProjectService"
 import { HiOutlineFolderPlus, HiOutlineArrowRight } from "react-icons/hi2"
@@ -17,11 +22,13 @@ const Projects = () => {
     isProjectsLoading,
     error,
     createProject,
+    canMutateResources,
   } = useWorkspace()
   const [createOpen, setCreateOpen] = useState(false)
 
   const workspaceName = activeOrganization?.name ?? "this workspace"
   const busy = isLoading || isProjectsLoading
+  const createDisabled = !canMutateResources
 
   const handleCreate = async (
     input: CreateProjectInput,
@@ -56,7 +63,19 @@ const Projects = () => {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-accent">{project.name}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-semibold text-accent">{project.name}</p>
+                      {isProjectInactive(project.status) ? (
+                        <span
+                          className={[
+                            "inline-flex rounded-md px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+                            projectStatusBadgeClass(project.status),
+                          ].join(" ")}
+                        >
+                          {formatProjectStatus(project.status)}
+                        </span>
+                      ) : null}
+                    </div>
                     <p className="mt-1 text-xs tracking-wide text-neutral-400 uppercase">
                       {formatProjectEnvironment(project.environment)}
                     </p>
@@ -76,11 +95,16 @@ const Projects = () => {
             <button
               type="button"
               onClick={() => setCreateOpen(true)}
-              className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-neutral-300 bg-white/50 p-5 text-center text-neutral-500 transition hover:border-neutral-400 hover:text-accent dark:border-neutral-600 dark:bg-neutral-900/50 dark:text-neutral-400 dark:hover:border-neutral-500 dark:hover:text-neutral-100"
+              disabled={createDisabled}
+              className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-neutral-300 bg-white/50 p-5 text-center text-neutral-500 transition hover:border-neutral-400 hover:text-accent disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-neutral-300 disabled:hover:text-neutral-500 dark:border-neutral-600 dark:bg-neutral-900/50 dark:text-neutral-400 dark:hover:border-neutral-500 dark:hover:text-neutral-100 dark:disabled:hover:border-neutral-600 dark:disabled:hover:text-neutral-400"
             >
               <HiOutlineFolderPlus className="size-6 opacity-50" aria-hidden />
               <p className="text-sm font-medium">Create project</p>
-              <p className="text-xs">Add a project to {workspaceName}</p>
+              <p className="text-xs">
+                {createDisabled
+                  ? "Activate billing to add projects"
+                  : `Add a project to ${workspaceName}`}
+              </p>
             </button>
           </div>
         )}

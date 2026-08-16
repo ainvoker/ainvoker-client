@@ -23,11 +23,11 @@ const SdkBrowser = () => (
   <DocsArticle
     slug="sdk/browser"
     title="Browser Usage"
-    description="Call AInvoker from a backend — do not ship API keys to the browser."
+    description="Prefer a backend proxy. Direct browser calls need an allowed app URL."
   >
     <Callout title="Do not put API keys in the browser" variant="warning">
       Anyone can extract secrets from client bundles. Use a backend or serverless function that
-      holds the key and calls AInvoker for you. That is the supported pattern.
+      holds the key and calls AInvoker for you. That is the supported production pattern.
     </Callout>
 
     <H2>Recommended pattern</H2>
@@ -44,11 +44,24 @@ const SdkBrowser = () => (
     </Ul>
     <CodeBlock code={proxyExample} language="typescript" title="Browser → your backend" />
 
-    <H2>Why not call the API directly from the client?</H2>
+    <H2>Direct browser calls (optional)</H2>
+    <P>
+      If you still call the gateway from the browser, add your app origin under{" "}
+      <strong className="text-white">Project → Settings → Allowed app URLs</strong> (exact scheme +
+      host + port, for example <InlineCode>http://localhost:5173</InlineCode> or{" "}
+      <InlineCode>https://app.example.com</InlineCode>). Until that list includes your origin,
+      browser requests are blocked by CORS. Node / server SDK calls have no{" "}
+      <InlineCode>Origin</InlineCode> header and do not need an entry.
+    </P>
+    <P>
+      Origin allowlisting only stops other websites from using your key in a browser. It does not
+      hide an <InlineCode>ain_</InlineCode> key shipped in frontend code.
+    </P>
+
+    <H2>Why prefer a backend?</H2>
     <P>
       Exposing an <InlineCode>ain_</InlineCode> key in frontend code lets anyone use your quota.
-      The API also restricts which browser origins can call it, so direct client calls are not
-      intended for production apps.
+      Proxying through your own API keeps the secret on the server.
     </P>
     <P>
       For server-side usage, see{" "}

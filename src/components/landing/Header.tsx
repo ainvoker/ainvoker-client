@@ -12,7 +12,7 @@ const Header = () => {
                     className="hero-animate text-lg text-[#cccccc]"
                     style={{ animationDelay: "220ms" }}
                 >
-                    Ainvoker simplifies AI integration by providing a unified gateway to multiple providers.
+                    AInvoker simplifies AI integration by providing a unified gateway to multiple providers.
                     Manage API keys, monitor usage, and audit your AI applications with enterprise-grade security.
                 </p>
             </div>

@@ -19,9 +19,9 @@ const curlExample = `curl ${DOCS_BASE_URL}/v1/text/chat \\
     "messages": [{ "role": "user", "content": "Hello" }]
   }'`
 
-const sdkExample = `import { Ainvoker } from "ainvoker"
+const sdkExample = `import { AInvoker } from "ainvoker"
 
-const ai = new Ainvoker({
+const ai = new AInvoker({
   apiKey: process.env.AINVOKER_API_KEY!,
 })
 

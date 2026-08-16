@@ -6,6 +6,7 @@ import CreateApiKeyModal from "../../../components/workspace/CreateApiKeyModal"
 import RevealApiKeyModal from "../../../components/workspace/RevealApiKeyModal"
 import Button from "../../../components/common/Button"
 import { useAuth } from "../../../contexts/AuthContext"
+import { useWorkspace } from "../../../contexts/WorkspaceContext"
 import ApiKeyService, {
   type ApiKey,
   type CreateApiKeyInput,
@@ -45,6 +46,7 @@ const statusClass = (status: string) => {
 const ApiKeys = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const { token } = useAuth()
+  const { canMutateResources } = useWorkspace()
 
   const [keys, setKeys] = useState<ApiKey[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -54,6 +56,7 @@ const ApiKeys = () => {
 
   const [createOpen, setCreateOpen] = useState(false)
   const [revealedKey, setRevealedKey] = useState<CreatedApiKey | null>(null)
+  const createDisabled = !token || !projectId || !canMutateResources
 
   const loadKeys = useCallback(async () => {
     if (!token || !projectId) {
@@ -171,7 +174,7 @@ const ApiKeys = () => {
               type="button"
               onClick={() => setCreateOpen(true)}
               className="!py-2 !px-3 text-sm"
-              disabled={!token || !projectId}
+              disabled={createDisabled}
             >
               <HiOutlinePlus className="size-4" aria-hidden />
               Create key
@@ -210,7 +213,7 @@ const ApiKeys = () => {
                 type="button"
                 onClick={() => setCreateOpen(true)}
                 className="!py-2 !px-3 text-sm"
-                disabled={!token || !projectId}
+                disabled={createDisabled}
               >
                 <HiOutlinePlus className="size-4" aria-hidden />
                 Create key

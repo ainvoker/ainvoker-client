@@ -11,6 +11,9 @@ import {
 import { useMatch, useNavigate } from "react-router-dom"
 import { useAuth } from "./AuthContext"
 import type { ApiErrorInfo } from "../services/Service"
+import BillingService, {
+  type OrgSubscription,
+} from "../services/BillingService"
 import OrganizationService, {
   type CreateOrganizationInput,
   type OrganizationListItem,
@@ -18,6 +21,7 @@ import OrganizationService, {
 import ProjectService, {
   type AppProject,
   type CreateProjectInput,
+  type UpdateProjectInput,
 } from "../services/ProjectService"
 import { routes } from "../utils/navigation"
 import {
@@ -27,24 +31,46 @@ import {
   writeStoredOrganizationId,
 } from "../utils/workspace"
 
+function isSubscriptionActive(subscription: OrgSubscription | null): boolean {
+  if (!subscription || subscription.status !== "ACTIVE") return false
+  if (!subscription.expiresAt) return true
+  const expires = Date.parse(subscription.expiresAt)
+  if (Number.isNaN(expires)) return true
+  return expires > Date.now()
+}
+
 type WorkspaceContextValue = {
   organizations: OrganizationListItem[]
   activeOrganizationId: string | null
   activeOrganization: OrganizationListItem | null
   role: string | null
   projects: AppProject[]
+  subscription: OrgSubscription | null
   isLoading: boolean
   isProjectsLoading: boolean
+  isSubscriptionLoading: boolean
+  canMutateResources: boolean
   error: string | null
   setActiveWorkspace: (organizationId: string) => void
   refresh: () => Promise<void>
   refreshProjects: () => Promise<void>
+  refreshSubscription: () => Promise<void>
   createProject: (
     input: CreateProjectInput,
   ) => Promise<[AppProject | null, string | undefined]>
+  updateProject: (
+    projectId: string,
+    input: UpdateProjectInput,
+  ) => Promise<[AppProject | null, string | undefined]>
+  deleteProject: (
+    projectId: string,
+  ) => Promise<[true | null, string | undefined]>
   createWorkspace: (
     input: CreateOrganizationInput,
   ) => Promise<[OrganizationListItem | null, ApiErrorInfo | undefined]>
+  deleteWorkspace: (
+    organizationId: string,
+  ) => Promise<[true | null, ApiErrorInfo | undefined]>
   ensureProjectOrganization: (project: AppProject) => void
 }
 
@@ -54,14 +80,24 @@ const WorkspaceContext = createContext<WorkspaceContextValue>({
   activeOrganization: null,
   role: null,
   projects: [],
+  subscription: null,
   isLoading: false,
   isProjectsLoading: false,
+  isSubscriptionLoading: false,
+  canMutateResources: false,
   error: null,
   setActiveWorkspace: () => {},
   refresh: async () => {},
   refreshProjects: async () => {},
+  refreshSubscription: async () => {},
   createProject: async () => [null, "Workspace is not ready"],
+  updateProject: async () => [null, "Workspace is not ready"],
+  deleteProject: async () => [null, "Workspace is not ready"],
   createWorkspace: async () => [
+    null,
+    { status: 0, message: "Workspace is not ready" },
+  ],
+  deleteWorkspace: async () => [
     null,
     { status: 0, message: "Workspace is not ready" },
   ],
@@ -80,8 +116,10 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     () => (typeof window === "undefined" ? null : readInitialOrganizationId()),
   )
   const [projects, setProjects] = useState<AppProject[]>([])
+  const [subscription, setSubscription] = useState<OrgSubscription | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isProjectsLoading, setIsProjectsLoading] = useState(false)
+  const [isSubscriptionLoading, setIsSubscriptionLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const activeOrganizationIdRef = useRef(activeOrganizationId)
   const hasLoadedRef = useRef(false)
@@ -105,6 +143,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       setOrganizations([])
       setActiveOrganizationId(null)
       setProjects([])
+      setSubscription(null)
       setError(null)
       setIsLoading(false)
       return
@@ -152,6 +191,19 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     setProjects(data)
     setError(null)
     setIsProjectsLoading(false)
+  }, [token, activeOrganizationId])
+
+  const refreshSubscription = useCallback(async () => {
+    if (!token || !activeOrganizationId) {
+      setSubscription(null)
+      setIsSubscriptionLoading(false)
+      return
+    }
+
+    setIsSubscriptionLoading(true)
+    const [data] = await BillingService.getSubscription(token, activeOrganizationId)
+    setSubscription(data)
+    setIsSubscriptionLoading(false)
   }, [token, activeOrganizationId])
 
   const setActiveWorkspace = useCallback(
@@ -215,6 +267,46 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     [token, activeOrganizationId],
   )
 
+  const updateProject = useCallback(
+    async (
+      projectId: string,
+      input: UpdateProjectInput,
+    ): Promise<[AppProject | null, string | undefined]> => {
+      if (!token) {
+        return [null, "Not signed in"]
+      }
+
+      const [project, err] = await ProjectService.update(token, projectId, input)
+      if (err || !project) {
+        return [null, err ?? "Failed to update project"]
+      }
+
+      setProjects((prev) =>
+        prev.map((item) => (item.id === project.id ? project : item)),
+      )
+
+      return [project, undefined]
+    },
+    [token],
+  )
+
+  const deleteProject = useCallback(
+    async (projectId: string): Promise<[true | null, string | undefined]> => {
+      if (!token) {
+        return [null, "Not signed in"]
+      }
+
+      const [, err] = await ProjectService.remove(token, projectId)
+      if (err) {
+        return [null, err]
+      }
+
+      setProjects((prev) => prev.filter((item) => item.id !== projectId))
+      return [true, undefined]
+    },
+    [token],
+  )
+
   const createWorkspace = useCallback(
     async (
       input: CreateOrganizationInput,
@@ -247,6 +339,39 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     [token, projectMatch, navigate],
   )
 
+  const deleteWorkspace = useCallback(
+    async (
+      organizationId: string,
+    ): Promise<[true | null, ApiErrorInfo | undefined]> => {
+      if (!token) {
+        return [null, { status: 0, message: "Not signed in" }]
+      }
+
+      const [, err] = await OrganizationService.remove(token, organizationId)
+      if (err) {
+        return [null, err]
+      }
+
+      const remaining = organizations.filter((org) => org.id !== organizationId)
+      setOrganizations(remaining)
+
+      const nextId = pickDefaultOrganizationId(remaining)
+      setActiveOrganizationId(nextId)
+      if (nextId) {
+        writeStoredOrganizationId(nextId)
+      }
+
+      if (projectMatch) {
+        navigate(routes.projects)
+      } else {
+        navigate(routes.settings)
+      }
+
+      return [true, undefined]
+    },
+    [token, organizations, projectMatch, navigate],
+  )
+
   useEffect(() => {
     if (authLoading) {
       setIsLoading(true)
@@ -258,6 +383,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       setOrganizations([])
       setActiveOrganizationId(null)
       setProjects([])
+      setSubscription(null)
       setError(null)
       setIsLoading(false)
       return
@@ -270,10 +396,16 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     void refreshProjects()
   }, [refreshProjects])
 
+  useEffect(() => {
+    void refreshSubscription()
+  }, [refreshSubscription])
+
   const activeOrganization = useMemo(
     () => organizations.find((org) => org.id === activeOrganizationId) ?? null,
     [organizations, activeOrganizationId],
   )
+
+  const canMutateResources = isSubscriptionActive(subscription)
 
   const value = useMemo<WorkspaceContextValue>(
     () => ({
@@ -282,14 +414,21 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       activeOrganization,
       role: activeOrganization?.role ?? null,
       projects,
+      subscription,
       isLoading,
       isProjectsLoading,
+      isSubscriptionLoading,
+      canMutateResources,
       error,
       setActiveWorkspace,
       refresh,
       refreshProjects,
+      refreshSubscription,
       createProject,
+      updateProject,
+      deleteProject,
       createWorkspace,
+      deleteWorkspace,
       ensureProjectOrganization,
     }),
     [
@@ -297,14 +436,21 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       activeOrganizationId,
       activeOrganization,
       projects,
+      subscription,
       isLoading,
       isProjectsLoading,
+      isSubscriptionLoading,
+      canMutateResources,
       error,
       setActiveWorkspace,
       refresh,
       refreshProjects,
+      refreshSubscription,
       createProject,
+      updateProject,
+      deleteProject,
       createWorkspace,
+      deleteWorkspace,
       ensureProjectOrganization,
     ],
   )

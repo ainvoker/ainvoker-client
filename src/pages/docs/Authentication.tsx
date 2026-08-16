@@ -35,7 +35,7 @@ const Authentication = () => (
 
     <Callout title="Use your API key with the SDK">
       Pass your project API key via the <InlineCode>apiKey</InlineCode> option when creating an{" "}
-      <InlineCode>Ainvoker</InlineCode> client. Your dashboard login is only for the website —
+      <InlineCode>AInvoker</InlineCode> client. Your dashboard login is only for the website —
       it is not used for API calls.
     </Callout>
 

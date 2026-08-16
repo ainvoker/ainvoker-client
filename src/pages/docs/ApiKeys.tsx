@@ -72,7 +72,7 @@ const ApiKeysPage = () => (
       >
         Browser usage
       </Link>
-      .
+      . Direct browser calls also require an allowed app URL under project settings.
     </Callout>
   </DocsArticle>
 )

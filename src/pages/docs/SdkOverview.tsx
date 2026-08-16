@@ -12,9 +12,9 @@ import { DOCS_BASE_URL } from "../../docs/nav"
 
 const installExample = `npm install ainvoker`
 
-const quickStart = `import { Ainvoker, isAinvokerError } from "ainvoker"
+const quickStart = `import { AInvoker, isAInvokerError } from "ainvoker"
 
-const ai = new Ainvoker({
+const ai = new AInvoker({
   apiKey: process.env.AINVOKER_API_KEY!,
   // optional — defaults to ${DOCS_BASE_URL}
 })
@@ -26,7 +26,7 @@ try {
   })
   console.log(result.message.content)
 } catch (error) {
-  if (isAinvokerError(error)) {
+  if (isAInvokerError(error)) {
     console.error(error.status, error.code, error.message)
   } else {
     throw error

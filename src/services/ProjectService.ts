@@ -22,6 +22,13 @@ export type CreateProjectInput = {
     environment: ProjectEnvironment;
 };
 
+export type UpdateProjectInput = {
+    name?: string;
+    description?: string | null;
+    environment?: ProjectEnvironment;
+    status?: ProjectStatus;
+};
+
 class ProjectService extends Service {
     async list(
         token: string,
@@ -78,6 +85,44 @@ class ProjectService extends Service {
                 Authorization: `Bearer ${token}`,
             },
         });
+    }
+
+    async update(
+        token: string,
+        projectId: string,
+        input: UpdateProjectInput,
+    ): Promise<[AppProject | null, string | undefined]> {
+        if (!API_URL) {
+            return [null, "VITE_API_URL is not configured"];
+        }
+
+        return this.request<AppProject>(`${API_URL}/api/v1/projects/${projectId}`, {
+            method: "PATCH",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(input),
+        });
+    }
+
+    async remove(
+        token: string,
+        projectId: string,
+    ): Promise<[{ deleted: true } | null, string | undefined]> {
+        if (!API_URL) {
+            return [null, "VITE_API_URL is not configured"];
+        }
+
+        return this.request<{ deleted: true }>(
+            `${API_URL}/api/v1/projects/${projectId}`,
+            {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            },
+        );
     }
 }
 

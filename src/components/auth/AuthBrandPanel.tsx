@@ -15,8 +15,8 @@ const AuthBrandPanel = () => {
     <div className="flex-1 min-h-screen bg-accent hidden md:flex items-center justify-center px-12 lg:px-16">
       <div className="w-full max-w-lg flex flex-col gap-6">
         <div className="flex items-center gap-3">
-          <img src={Logo} alt="Ainvoker Logo" className="h-10" />
-          <span className="text-3xl font-semibold text-white">Ainvoker</span>
+          <img src={Logo} alt="AInvoker Logo" className="h-10" />
+          <span className="text-3xl font-semibold text-white">AInvoker</span>
         </div>
         <h2 className="text-3xl lg:text-4xl font-black text-white leading-[1.3]">
           Centralized AI Access & Management

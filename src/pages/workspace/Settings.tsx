@@ -1,5 +1,7 @@
+import { type FormEvent, useState } from "react"
 import WorkspacePage from "../../components/workspace/WorkspacePage"
 import UserAvatar from "../../components/common/UserAvatar"
+import Button from "../../components/common/Button"
 import { useAuth } from "../../contexts/AuthContext"
 import { useTheme } from "../../contexts/ThemeContext"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
@@ -14,8 +16,14 @@ const themeOptions: { value: ThemePreference; label: string }[] = [
   { value: "DEVICE", label: "Device" },
 ]
 
+const inputClassName =
+  "w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-accent outline-none ring-accent/30 placeholder:text-neutral-400 focus:ring-2 dark:border-neutral-700 dark:bg-neutral-900 dark:placeholder:text-neutral-500"
+
+const isPersonalWorkspace = (slug: string | undefined) =>
+  Boolean(slug?.startsWith("personal-"))
+
 const Settings = () => {
-  const { activeOrganization, role, isLoading } = useWorkspace()
+  const { activeOrganization, role, isLoading, deleteWorkspace } = useWorkspace()
   const { themePreference, setThemePreference, isSaving } = useTheme()
   const { appBootstrap } = useAuth()
 
@@ -23,6 +31,40 @@ const Settings = () => {
   const displayName = formatAppUserName(appUser) || "Account"
   const avatarSrc = appUser?.profilePicture ?? null
   const email = appUser?.email ?? null
+
+  const canDeleteWorkspace =
+    role === "owner" &&
+    activeOrganization &&
+    !isPersonalWorkspace(activeOrganization.slug)
+
+  const [deleteConfirmName, setDeleteConfirmName] = useState("")
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const deleteNameMatches =
+    Boolean(activeOrganization) &&
+    deleteConfirmName.trim() === activeOrganization?.name
+
+  const handleDeleteWorkspace = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!activeOrganization || !canDeleteWorkspace) return
+
+    if (deleteConfirmName.trim() !== activeOrganization.name) {
+      setDeleteError("Type the workspace name exactly to confirm deletion")
+      return
+    }
+
+    setIsDeleting(true)
+    setDeleteError(null)
+
+    const [, err] = await deleteWorkspace(activeOrganization.id)
+    setIsDeleting(false)
+
+    if (err) {
+      setDeleteError(err.message)
+      return
+    }
+  }
 
   return (
     <main className="flex-1 overflow-auto p-4 md:p-5 lg:p-6">
@@ -96,7 +138,7 @@ const Settings = () => {
                 Theme
               </p>
               <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                Choose how Ainvoker looks for your account.
+                Choose how AInvoker looks for your account.
               </p>
               <div
                 className="mt-3 inline-flex rounded-lg border border-neutral-200/80 bg-neutral-50 p-0.5 dark:border-neutral-700 dark:bg-neutral-800"
@@ -126,6 +168,55 @@ const Settings = () => {
               </div>
             </div>
           </section>
+
+          {canDeleteWorkspace ? (
+            <section className="space-y-3 rounded-2xl border border-red-200/80 bg-white p-5 dark:border-red-900/50 dark:bg-neutral-900">
+              <div>
+                <h2 className="text-sm font-semibold text-red-600 dark:text-red-400">
+                  Danger zone
+                </h2>
+                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                  Soft-delete this workspace. Subscriptions are canceled and it
+                  disappears from your switcher. Projects and keys remain in the
+                  database but are no longer accessible from the app. Your
+                  Personal workspace is not affected.
+                </p>
+              </div>
+
+              <form
+                onSubmit={(event) => void handleDeleteWorkspace(event)}
+                className="space-y-3"
+              >
+                <label className="block text-sm">
+                  <span className="mb-1.5 block text-xs tracking-wide text-neutral-400 uppercase">
+                    Type “{activeOrganization.name}” to confirm
+                  </span>
+                  <input
+                    type="text"
+                    value={deleteConfirmName}
+                    onChange={(event) => setDeleteConfirmName(event.target.value)}
+                    className={inputClassName}
+                    disabled={isDeleting}
+                    autoComplete="off"
+                    placeholder={activeOrganization.name}
+                  />
+                </label>
+
+                {deleteError ? (
+                  <p className="text-sm text-red-600 dark:text-red-400">{deleteError}</p>
+                ) : null}
+
+                <Button
+                  type="submit"
+                  className="!bg-red-600 !px-3 !py-2 text-sm hover:!brightness-95 dark:!bg-red-500 dark:!text-white"
+                  loading={isDeleting}
+                  disabled={!deleteNameMatches}
+                >
+                  Delete workspace
+                </Button>
+              </form>
+            </section>
+          ) : null}
         </div>
       </WorkspacePage>
     </main>

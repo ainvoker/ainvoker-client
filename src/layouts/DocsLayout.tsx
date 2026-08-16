@@ -28,7 +28,7 @@ const DocsLayout = () => {
             </button>
             <Link to="/" className="flex items-center gap-2">
               <img src={Logo} alt="" className="h-5" />
-              <span className="text-sm font-semibold tracking-tight">Ainvoker</span>
+              <span className="text-sm font-semibold tracking-tight">AInvoker</span>
             </Link>
             <span className="hidden text-[#444] sm:inline">/</span>
             <Link to="/docs" className="hidden text-sm text-[#aaa] hover:text-white sm:inline">

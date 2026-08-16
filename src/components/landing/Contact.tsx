@@ -28,7 +28,7 @@ const Contact = () => {
                         Get in touch
                     </h2>
                     <p className="text-lg text-[#ccc] leading-relaxed">
-                        Have questions about Ainvoker? Our team is here to help you get the most out of
+                        Have questions about AInvoker? Our team is here to help you get the most out of
                         your AI infrastructure. Reach out and we&apos;ll get back to you within one business day.
                     </p>
                     <div className="flex flex-col gap-4 mt-2">

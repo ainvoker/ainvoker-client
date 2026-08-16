@@ -38,7 +38,7 @@ const AppSidebar = ({ open, onClose, onOpen }: AppSidebarProps) => {
         </button>
         <div className="flex items-center gap-2">
           <img src={Logo} alt="" className="h-5 invert dark:invert-0" />
-          <span className="text-sm font-semibold text-accent">Ainvoker</span>
+          <span className="text-sm font-semibold text-accent">AInvoker</span>
         </div>
         <div className="size-9" aria-hidden />
       </div>
@@ -65,7 +65,7 @@ const AppSidebar = ({ open, onClose, onOpen }: AppSidebarProps) => {
             onClick={onClose}
           >
             <img src={Logo} alt="AInvoker" className="h-5 invert dark:invert-0" />
-            <span className="text-sm font-semibold tracking-tight">Ainvoker</span>
+            <span className="text-sm font-semibold tracking-tight">AInvoker</span>
           </NavLink>
           <button
             type="button"

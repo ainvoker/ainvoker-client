@@ -12,9 +12,9 @@ import { DOCS_BASE_URL } from "../../docs/nav"
 
 const envExample = `AINVOKER_API_KEY=ain_your_key_here`
 
-const nodeExample = `import { Ainvoker, isAinvokerError } from "ainvoker"
+const nodeExample = `import { AInvoker, isAInvokerError } from "ainvoker"
 
-const ai = new Ainvoker({
+const ai = new AInvoker({
   apiKey: process.env.AINVOKER_API_KEY!,
 })
 
@@ -56,7 +56,7 @@ const SdkNodejs = () => (
 
     <H2>Error handling</H2>
     <P>
-      Catch with <InlineCode>isAinvokerError</InlineCode> to read{" "}
+      Catch with <InlineCode>isAInvokerError</InlineCode> to read{" "}
       <InlineCode>status</InlineCode>, <InlineCode>code</InlineCode>, and{" "}
       <InlineCode>message</InlineCode>. See{" "}
       <Link to="/docs/errors" className="text-white underline underline-offset-2 hover:text-[#ddd]">

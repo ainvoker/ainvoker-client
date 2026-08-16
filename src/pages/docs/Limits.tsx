@@ -49,7 +49,7 @@ const Limits = () => (
       <li>
         Scale is usage-based —{" "}
         <a
-          href="mailto:support-ainvoker@ainvoker.com?subject=Ainvoker%20Scale%20Plan"
+          href="mailto:support-ainvoker@ainvoker.com?subject=AInvoker%20Scale%20Plan"
           className="text-white underline underline-offset-2 hover:text-[#ddd]"
         >
           contact sales

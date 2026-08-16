@@ -9,7 +9,7 @@ const Services = () => {
     <section id="features" className="py-25 scroll-mt-8">
         <Reveal className="flex flex-col items-center gap-2 mb-20 text-center">
             <h2 className="text-4xl font-black bg-accent-gradient-lg w-fit bg-clip-text text-transparent leading-[1.3]">
-                What Ainvoker Can Do
+                What AInvoker Can Do
             </h2>
             <p className="text-lg text-[#ccc]">
                 One SDK. Every provider. Every capability.

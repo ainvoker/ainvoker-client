@@ -1,7 +1,13 @@
 import { useEffect, useId, useRef, useState } from "react"
 import { Link, useNavigate, useParams, useLocation } from "react-router-dom"
 import { HiChevronDown, HiOutlineFolderPlus, HiOutlineSquares2X2 } from "react-icons/hi2"
-import { getProjectById, formatProjectEnvironment } from "../../utils/projects"
+import {
+  getProjectById,
+  formatProjectEnvironment,
+  formatProjectStatus,
+  isProjectInactive,
+  projectStatusBadgeClass,
+} from "../../utils/projects"
 import { routes } from "../../utils/navigation"
 import { useAuth } from "../../contexts/AuthContext"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
@@ -23,6 +29,7 @@ const ProjectSwitcher = ({ onNavigate }: ProjectSwitcherProps) => {
     createProject,
     ensureProjectOrganization,
     isProjectsLoading,
+    canMutateResources,
   } = useWorkspace()
   const [open, setOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
@@ -117,6 +124,9 @@ const ProjectSwitcher = ({ onNavigate }: ProjectSwitcherProps) => {
             {environment ? (
               <p className="mt-0.5 truncate text-[11px] tracking-wide text-neutral-400">
                 {environment}
+                {current && isProjectInactive(current.status)
+                  ? ` · ${formatProjectStatus(current.status)}`
+                  : ""}
               </p>
             ) : null}
           </div>
@@ -147,14 +157,16 @@ const ProjectSwitcher = ({ onNavigate }: ProjectSwitcherProps) => {
               </Link>
               <button
                 type="button"
+                disabled={!canMutateResources}
                 onClick={() => {
+                  if (!canMutateResources) return
                   setOpen(false)
                   setCreateOpen(true)
                 }}
-                className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-accent dark:text-neutral-300 dark:hover:bg-neutral-800"
+                className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-accent disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:disabled:hover:bg-transparent dark:disabled:hover:text-neutral-300"
               >
                 <HiOutlineFolderPlus className="size-3.5 opacity-70" aria-hidden />
-                Create a project
+                {canMutateResources ? "Create a project" : "Billing required"}
               </button>
             </div>
 
@@ -188,8 +200,18 @@ const ProjectSwitcher = ({ onNavigate }: ProjectSwitcherProps) => {
                         : "hover:bg-neutral-50 dark:hover:bg-neutral-800/70",
                     ].join(" ")}
                   >
-                    <span className="truncate text-[13px] font-medium text-accent">
-                      {project.name}
+                    <span className="flex items-center gap-1.5 truncate text-[13px] font-medium text-accent">
+                      <span className="truncate">{project.name}</span>
+                      {isProjectInactive(project.status) ? (
+                        <span
+                          className={[
+                            "shrink-0 rounded px-1 py-px text-[10px] font-medium uppercase tracking-wide",
+                            projectStatusBadgeClass(project.status),
+                          ].join(" ")}
+                        >
+                          {formatProjectStatus(project.status)}
+                        </span>
+                      ) : null}
                     </span>
                     <span className="truncate text-[12px] text-neutral-400">
                       {formatProjectEnvironment(project.environment)}

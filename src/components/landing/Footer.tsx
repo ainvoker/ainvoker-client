@@ -22,8 +22,8 @@ const Footer = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                 <div className="flex flex-col gap-4">
                     <Link to="/" className="flex items-center gap-2 w-fit">
-                        <img src={Logo} alt="Ainvoker Logo" className="h-7" />
-                        <span className="text-xl font-semibold">Ainvoker</span>
+                        <img src={Logo} alt="AInvoker Logo" className="h-7" />
+                        <span className="text-xl font-semibold">AInvoker</span>
                     </Link>
                     <div className="flex gap-4">
                         <a
@@ -81,7 +81,7 @@ const Footer = () => {
             </div>
 
             <p className="text-[#666] text-sm mt-12">
-                &copy; {new Date().getFullYear()} Ainvoker. All rights reserved.
+                &copy; {new Date().getFullYear()} AInvoker. All rights reserved.
             </p>
         </footer>
     )

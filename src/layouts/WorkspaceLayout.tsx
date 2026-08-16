@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Outlet } from "react-router-dom"
 import AppSidebar from "../components/workspace/AppSidebar"
+import BillingRequiredBanner from "../components/workspace/BillingRequiredBanner"
 import { useTheme } from "../contexts/ThemeContext"
 
 type WorkspaceLayoutProps = {
@@ -41,6 +42,7 @@ const WorkspaceLayout = ({ children }: WorkspaceLayoutProps) => {
               "radial-gradient(ellipse 80% 50% at 100% -10%, rgba(17,17,17,0.06), transparent), radial-gradient(ellipse 60% 40% at 0% 100%, rgba(17,17,17,0.04), transparent)",
           }}
         />
+        <BillingRequiredBanner />
         {children ?? <Outlet />}
       </div>
     </div>

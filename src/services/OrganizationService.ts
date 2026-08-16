@@ -49,6 +49,25 @@ class OrganizationService extends Service {
             body: JSON.stringify(input),
         });
     }
+
+    async remove(
+        token: string,
+        orgId: string,
+    ): Promise<[{ deleted: true } | null, ApiErrorInfo | undefined]> {
+        if (!API_URL) {
+            return [null, { status: 0, message: "VITE_API_URL is not configured" }];
+        }
+
+        return this.requestDetailed<{ deleted: true }>(
+            `${API_URL}/api/v1/organizations/${orgId}`,
+            {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            },
+        );
+    }
 }
 
 export default new OrganizationService();

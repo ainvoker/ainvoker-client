@@ -7,7 +7,7 @@
         "codes": [
             {
                 "provider": "openai",
-                "code": "import { ainvoker as ai } from \"ainvoker\"\n\nconst { text } = await ai.text.generate({  \n\tmodel: \"openai/gpt-5.4\",  \n\tprompt: \"How does SDK works?\"\n})\n\nconsole.log(text)"
+                "code": "import { AInvoker } from \"ainvoker\"\n\nconst ai = new AInvoker({\n  apiKey: process.env.AINVOKER_API_KEY!,\n})\n\nconst result = await ai.text.chat({\n  model: \"openai/gpt-4o-mini\",\n  messages: [{ role: \"user\", content: \"How does the SDK work?\" }],\n})\n\nconsole.log(result.message.content)"
             }
         ]
     },
@@ -19,7 +19,7 @@
         "codes": [
             {
                 "provider": "openai",
-                "code": "import { ainvoker as ai } from \"ainvoker\"\n\nconst { image } = await ai.vision.generate({  \n\tmodel: \"openai/dall-e-3\",  \n\tprompt: \"A cute puppy eating carrots\"\n}) \n\nconsole.log(image.base64)"
+                "code": "import { AInvoker } from \"ainvoker\"\n\nconst ai = new AInvoker({\n  apiKey: process.env.AINVOKER_API_KEY!,\n})\n\nconst result = await ai.image.generate({\n  model: \"openai/dall-e-3\",\n  prompt: \"A cute puppy eating carrots\",\n})\n\nconsole.log(result.image.base64)"
             }
         ]
     },
@@ -31,7 +31,7 @@
         "codes": [
             {
                 "provider": "openai",
-                "code": "import { ainvoker as ai } from \"ainvoker\"\nimport { z } from \"zod\" \n\nconst themeDef = ai.action.define({ \n\tname: \"toggle_theme\", \n\tdirection: \"Toggle theme UI to dark and light mode\", \n\tinputSchema: z.object({ \n\t\ttheme: z.enum([\"light\", \"dark\", \"system\"]) \n\t}), \n\tmethod: ({ theme }) => { \n\t\treturn setTheme(theme) \n\t} \n})\n\nconst { text } = await ai.action.invoke({\n\tmodel: \"openai/gpt-5.4\",\n\ttools: [themeDef],\n\tprompt: \"Switch theme to dark\"\n})\n\nconsole.log(text)"
+                "code": "import { AInvoker } from \"ainvoker\"\nimport { z } from \"zod\"\n\nconst ai = new AInvoker({\n  apiKey: process.env.AINVOKER_API_KEY!,\n})\n\nconst themeDef = ai.action.define({\n  name: \"toggle_theme\",\n  description: \"Toggle theme UI to dark and light mode\",\n  inputSchema: z.object({\n    theme: z.enum([\"light\", \"dark\", \"system\"]),\n  }),\n  method: ({ theme }) => setTheme(theme),\n})\n\nconst result = await ai.action.invoke({\n  model: \"openai/gpt-4o-mini\",\n  tools: [themeDef],\n  prompt: \"Switch theme to dark\",\n})\n\nconsole.log(result.message.content)"
             }
         ]
     }

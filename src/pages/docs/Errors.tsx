@@ -50,7 +50,7 @@ const Errors = () => (
 
     <H2>SDK errors</H2>
     <P>
-      The <InlineCode>ainvoker</InlineCode> SDK throws <InlineCode>AinvokerError</InlineCode> with{" "}
+      The <InlineCode>ainvoker</InlineCode> SDK throws <InlineCode>AInvokerError</InlineCode> with{" "}
       <InlineCode>status</InlineCode>, <InlineCode>code</InlineCode>, and{" "}
       <InlineCode>message</InlineCode>. Additional client-side codes:
     </P>

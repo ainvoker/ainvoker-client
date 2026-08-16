@@ -42,7 +42,7 @@ const plans = [
             "Optional safety ceilings when configured",
         ],
         cta: "Contact Sales",
-        ctaHref: "mailto:support-ainvoker@ainvoker.com?subject=Ainvoker%20Scale%20Plan",
+        ctaHref: "mailto:support-ainvoker@ainvoker.com?subject=AInvoker%20Scale%20Plan",
     },
 ]
 

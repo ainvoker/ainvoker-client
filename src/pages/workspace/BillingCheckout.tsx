@@ -35,6 +35,7 @@ const BillingCheckout = () => {
   const [componentsSdkKey, setComponentsSdkKey] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [completed, setCompleted] = useState(false)
+  const [retryNonce, setRetryNonce] = useState(0)
 
   useLayoutEffect(() => {
     if (!orgId) return
@@ -54,7 +55,7 @@ const BillingCheckout = () => {
     setError(null)
 
     void (async () => {
-      const cached = readCachedCheckout(orgId)
+      const cached = retryNonce === 0 ? readCachedCheckout(orgId) : null
       if (cached) {
         setComponentsSdkKey(cached.componentsSdkKey)
         return
@@ -76,7 +77,7 @@ const BillingCheckout = () => {
     return () => {
       cancelled = true
     }
-  }, [authLoading, token, orgId, plan, returnUrl])
+  }, [authLoading, token, orgId, plan, returnUrl, retryNonce])
 
   const handleSuccess = useCallback(async () => {
     setCompleted(true)
@@ -90,8 +91,15 @@ const BillingCheckout = () => {
   }, [navigate, orgId, refresh, setActiveWorkspace])
 
   const handleFail = useCallback((message: string) => {
+    const staleSchedule = /anchor_date/i.test(message)
+    if (staleSchedule && orgId && retryNonce < 1) {
+      clearCachedCheckout(orgId)
+      setComponentsSdkKey(null)
+      setRetryNonce((n) => n + 1)
+      return
+    }
     setError(message)
-  }, [])
+  }, [orgId, retryNonce])
 
   return (
     <main className="flex-1 overflow-auto p-4 md:p-5 lg:p-6">

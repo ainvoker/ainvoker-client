@@ -1,6 +1,6 @@
 import type { CheckoutSession } from "../services/BillingService"
 
-const STORAGE_PREFIX = "ainvoker.checkout."
+const STORAGE_PREFIX = "ainvoker.checkout.v2."
 
 type CachedCheckout = CheckoutSession & { orgId: string }
 

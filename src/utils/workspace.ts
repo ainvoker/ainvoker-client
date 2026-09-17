@@ -47,8 +47,69 @@ export const readInitialOrganizationId = (): string | null => {
   return readStoredOrganizationId()
 }
 
-export const isPersonalWorkspace = (slug: string | undefined | null) =>
-  Boolean(slug?.startsWith("personal-"))
+/** Prefer server `isPersonal`; fall back to slug prefix for older payloads. */
+export const isPersonalWorkspace = (
+  orgOrSlug:
+    | string
+    | undefined
+    | null
+    | { isPersonal?: boolean; slug?: string | null },
+) => {
+  if (orgOrSlug == null) return false
+  if (typeof orgOrSlug === "string") return orgOrSlug.startsWith("personal-")
+  if (typeof orgOrSlug.isPersonal === "boolean") return orgOrSlug.isPersonal
+  return Boolean(orgOrSlug.slug?.startsWith("personal-"))
+}
+
+export const workspacePermissions = (
+  org:
+    | {
+        role?: string | null
+        isPersonal?: boolean
+        slug?: string | null
+        permissions?: { canEdit?: boolean; canDelete?: boolean }
+      }
+    | null
+    | undefined,
+) => {
+  const isPersonal = isPersonalWorkspace(org ?? null)
+  const role = org?.role ?? "member"
+  return {
+    isPersonal,
+    canEdit:
+      org?.permissions?.canEdit ??
+      ((role === "owner" || role === "admin") && !isPersonal),
+    canDelete: org?.permissions?.canDelete ?? (role === "owner" && !isPersonal),
+  }
+}
+
+/** Team management gates — UI only; API still enforces. */
+export const teamPermissions = (
+  org:
+    | {
+        role?: string | null
+        isPersonal?: boolean
+        slug?: string | null
+      }
+    | null
+    | undefined,
+) => {
+  const isPersonal = isPersonalWorkspace(org ?? null)
+  const role = org?.role ?? "member"
+  const isManager = (role === "owner" || role === "admin") && !isPersonal
+
+  return {
+    isPersonal,
+    role,
+    canListMembers: !isPersonal,
+    canInvite: isManager,
+    canManageInvites: isManager,
+    canChangeRoles: isManager,
+    canRemoveMembers: isManager,
+    canTransferOwnership: role === "owner" && !isPersonal,
+    canLeave: !isPersonal,
+  }
+}
 
 /** Prefer Personal workspace, otherwise the first membership. */
 export const pickDefaultOrganizationId = (

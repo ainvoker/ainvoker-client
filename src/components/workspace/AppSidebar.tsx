@@ -1,7 +1,5 @@
 import { NavLink, useMatch } from "react-router-dom"
-import { getProjectNav, routes, workspaceNav } from "../../utils/navigation"
-import { useWorkspace } from "../../contexts/WorkspaceContext"
-import { isPersonalWorkspace } from "../../utils/workspace"
+import { getProjectNav, workspaceNav } from "../../utils/navigation"
 import Logo from "../../assets/logo.svg"
 import ProfileMenu from "./ProfileMenu"
 import ProjectSwitcher from "./ProjectSwitcher"
@@ -23,15 +21,10 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
   ].join(" ")
 
 const AppSidebar = ({ open, onClose, onOpen }: AppSidebarProps) => {
-  const { activeOrganization } = useWorkspace()
   const projectMatch = useMatch({ path: "/projects/:projectId", end: false })
   const projectId = projectMatch?.params.projectId ?? ""
   const projectItems = projectId ? getProjectNav(projectId) : []
-  const hideTeam =
-    !activeOrganization || isPersonalWorkspace(activeOrganization.slug)
-  const navItems = hideTeam
-    ? workspaceNav.filter((item) => item.path !== routes.team)
-    : workspaceNav
+  const navItems = workspaceNav
 
   return (
     <>

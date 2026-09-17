@@ -263,15 +263,14 @@ const Billing = () => {
       : 0
 
   return (
-    <main className="flex-1 overflow-auto p-4 md:p-5 lg:p-6">
-      <WorkspacePage
-        title="Billing"
-        description={
-          activeOrganization
-            ? `Plan, usage, and invoices for ${activeOrganization.name}.`
-            : "Plan, usage, and invoices for this workspace."
-        }
-      >
+    <WorkspacePage
+      title="Billing"
+      description={
+        activeOrganization
+          ? `Plan, usage, and invoices for ${activeOrganization.name}.`
+          : "Plan, usage, and invoices for this workspace."
+      }
+    >
         <div className="mx-auto max-w-3xl space-y-4">
           {loadError ? (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-300">
@@ -704,7 +703,6 @@ const Billing = () => {
           )}
         </div>
       </WorkspacePage>
-    </main>
   )
 }
 

@@ -7,6 +7,7 @@ import GuestRoutes from "./layouts/GuestRoutes"
 import ProtectedRoutes from "./layouts/ProtectedRoutes"
 import WorkspaceLayout from "./layouts/WorkspaceLayout"
 import ProjectLayout from "./layouts/ProjectLayout"
+import SettingsLayout from "./layouts/SettingsLayout"
 import DocsLayout from "./layouts/DocsLayout"
 import LegalLayout from "./layouts/LegalLayout"
 import Home from "./pages/Home"
@@ -23,7 +24,12 @@ import Projects from "./pages/workspace/Projects"
 import Billing from "./pages/workspace/Billing"
 import BillingCheckout from "./pages/workspace/BillingCheckout"
 import Team from "./pages/workspace/Team"
-import Settings from "./pages/workspace/Settings"
+import AcceptInvite from "./pages/invites/AcceptInvite"
+import SettingsIndexRedirect from "./pages/workspace/settings/SettingsIndexRedirect"
+import BillingCheckoutRedirect from "./pages/workspace/settings/BillingCheckoutRedirect"
+import SettingsGeneral from "./pages/workspace/settings/General"
+import SettingsProfile from "./pages/workspace/settings/Profile"
+import SettingsAppearance from "./pages/workspace/settings/Appearance"
 import Overview from "./pages/workspace/projects/Overview"
 import ApiKeys from "./pages/workspace/projects/ApiKeys"
 import Models from "./pages/workspace/projects/Models"
@@ -84,6 +90,7 @@ function App() {
                 </Route>
 
                 <Route path="/" element={<ProtectedRoutes />}>
+                  <Route path="invites/accept" element={<AcceptInvite />} />
                   <Route element={<WorkspaceLayout />}>
                     <Route path="projects" element={<Projects />} />
                     <Route path="projects/:projectId" element={<ProjectLayout />}>
@@ -95,10 +102,22 @@ function App() {
                       <Route path="logs" element={<Logs />} />
                       <Route path="settings" element={<ProjectSettings />} />
                     </Route>
-                    <Route path="billing" element={<Billing />} />
-                    <Route path="billing/checkout" element={<BillingCheckout />} />
-                    <Route path="team" element={<Team />} />
-                    <Route path="settings" element={<Settings />} />
+
+                    <Route path="billing" element={<Navigate to="/settings/billing" replace />} />
+                    <Route path="billing/checkout" element={<BillingCheckoutRedirect />} />
+                    <Route path="team" element={<Navigate to="/settings/team" replace />} />
+
+                    <Route path="settings">
+                      <Route element={<SettingsLayout />}>
+                        <Route index element={<SettingsIndexRedirect />} />
+                        <Route path="general" element={<SettingsGeneral />} />
+                        <Route path="team" element={<Team />} />
+                        <Route path="billing" element={<Billing />} />
+                        <Route path="profile" element={<SettingsProfile />} />
+                        <Route path="appearance" element={<SettingsAppearance />} />
+                      </Route>
+                      <Route path="billing/checkout" element={<BillingCheckout />} />
+                    </Route>
                   </Route>
                 </Route>
 

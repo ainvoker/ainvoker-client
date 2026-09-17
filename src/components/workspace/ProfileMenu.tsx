@@ -116,7 +116,7 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
             <button
               type="button"
               role="menuitem"
-              onClick={() => go(`${routes.settings}#workspace`)}
+              onClick={() => go(routes.settingsGeneral)}
               className={menuItemClass}
             >
               <div className="grid size-7 shrink-0 place-content-center rounded-full bg-neutral-900 text-[11px] font-semibold text-white dark:bg-neutral-100 dark:text-neutral-900">
@@ -133,7 +133,7 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
             <button
               type="button"
               role="menuitem"
-              onClick={() => go(`${routes.settings}#workspace`)}
+              onClick={() => go(routes.settingsGeneral)}
               className={menuItemClass}
             >
               <HiOutlineBuildingOffice2 className="size-4 shrink-0 opacity-70" aria-hidden />
@@ -142,7 +142,7 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
             <button
               type="button"
               role="menuitem"
-              onClick={() => go(`${routes.settings}#account`)}
+              onClick={() => go(routes.settingsProfile)}
               className={menuItemClass}
             >
               <HiOutlineUserCircle className="size-4 shrink-0 opacity-70" aria-hidden />

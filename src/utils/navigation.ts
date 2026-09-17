@@ -11,6 +11,9 @@ import {
   HiOutlineFolder,
   HiOutlineUsers,
   HiOutlineSquares2X2,
+  HiOutlinePaintBrush,
+  HiOutlineUserCircle,
+  HiOutlineBuildingOffice2,
 } from "react-icons/hi2"
 
 export type NavLinkItem = {
@@ -32,11 +35,21 @@ export const routes = {
   projectAnalytics: (projectId: string) => `/projects/${projectId}/analytics`,
   projectLogs: (projectId: string) => `/projects/${projectId}/logs`,
   projectSettings: (projectId: string) => `/projects/${projectId}/settings`,
-  billing: "/billing",
-  billingCheckout: (orgId: string, plan: "pro" = "pro") =>
-    `/billing/checkout?orgId=${encodeURIComponent(orgId)}&plan=${plan}`,
-  team: "/team",
   settings: "/settings",
+  settingsGeneral: "/settings/general",
+  settingsTeam: "/settings/team",
+  settingsBilling: "/settings/billing",
+  settingsBillingCheckout: (orgId: string, plan: "pro" = "pro") =>
+    `/settings/billing/checkout?orgId=${encodeURIComponent(orgId)}&plan=${plan}`,
+  settingsProfile: "/settings/profile",
+  settingsAppearance: "/settings/appearance",
+  inviteAccept: "/invites/accept",
+  /** @deprecated Use settingsBilling — kept as alias for redirects */
+  billing: "/settings/billing",
+  billingCheckout: (orgId: string, plan: "pro" = "pro") =>
+    `/settings/billing/checkout?orgId=${encodeURIComponent(orgId)}&plan=${plan}`,
+  /** @deprecated Use settingsTeam */
+  team: "/settings/team",
   docs: "/docs",
   terms: "/terms",
   privacy: "/privacy",
@@ -45,16 +58,80 @@ export const routes = {
 export const workspaceNav: NavLinkItem[] = [
   { label: "Dashboard", path: routes.dashboard, icon: HiOutlineHome, end: true },
   { label: "Projects", path: routes.projects, icon: HiOutlineFolder, end: true },
-  { label: "Billing", path: routes.billing, icon: HiOutlineCreditCard },
-  { label: "Team", path: routes.team, icon: HiOutlineUsers },
+  { label: "Settings", path: routes.settings, icon: HiOutlineCog6Tooth },
 ]
 
+export type SettingsNavItem = {
+  label: string
+  path: string
+  icon: IconType
+  end?: boolean
+}
+
+export type SettingsNavGroup = {
+  label: string
+  items: SettingsNavItem[]
+}
+
+export const settingsNavGroups: SettingsNavGroup[] = [
+  {
+    label: "Workspace",
+    items: [
+      {
+        label: "General",
+        path: routes.settingsGeneral,
+        icon: HiOutlineBuildingOffice2,
+        end: true,
+      },
+      { label: "Team", path: routes.settingsTeam, icon: HiOutlineUsers },
+      {
+        label: "Billing",
+        path: routes.settingsBilling,
+        icon: HiOutlineCreditCard,
+        end: true,
+      },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { label: "Profile", path: routes.settingsProfile, icon: HiOutlineUserCircle },
+      {
+        label: "Appearance",
+        path: routes.settingsAppearance,
+        icon: HiOutlinePaintBrush,
+      },
+    ],
+  },
+]
+
+export const settingsSectionLabels: Record<string, string> = {
+  general: "General",
+  team: "Team",
+  billing: "Billing",
+  profile: "Profile",
+  appearance: "Appearance",
+}
+
 export const getProjectNav = (projectId: string): NavLinkItem[] => [
-  { label: "Overview", path: routes.projectOverview(projectId), icon: HiOutlineSquares2X2, end: true },
+  {
+    label: "Overview",
+    path: routes.projectOverview(projectId),
+    icon: HiOutlineSquares2X2,
+    end: true,
+  },
   { label: "API Keys", path: routes.projectApiKeys(projectId), icon: HiOutlineKey },
   { label: "Models", path: routes.projectModels(projectId), icon: HiOutlineCube },
   { label: "Actions", path: routes.projectActions(projectId), icon: HiOutlineBolt },
-  { label: "Analytics", path: routes.projectAnalytics(projectId), icon: HiOutlineChartBar },
+  {
+    label: "Analytics",
+    path: routes.projectAnalytics(projectId),
+    icon: HiOutlineChartBar,
+  },
   { label: "Logs", path: routes.projectLogs(projectId), icon: HiOutlineDocumentText },
-  { label: "Settings", path: routes.projectSettings(projectId), icon: HiOutlineCog6Tooth },
+  {
+    label: "Settings",
+    path: routes.projectSettings(projectId),
+    icon: HiOutlineCog6Tooth,
+  },
 ]

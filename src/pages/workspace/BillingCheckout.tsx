@@ -102,7 +102,7 @@ const BillingCheckout = () => {
   }, [orgId, retryNonce])
 
   return (
-    <main className="flex-1 overflow-auto p-4 md:p-5 lg:p-6">
+    <main className="min-w-0 flex-1 overflow-auto p-4 md:p-5 lg:p-6">
       <WorkspacePage
         title="Complete payment"
         description={

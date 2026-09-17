@@ -408,7 +408,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       if (projectMatch) {
         navigate(routes.projects)
       } else {
-        navigate(routes.settings)
+        navigate(routes.settingsGeneral)
       }
 
       return [true, undefined]

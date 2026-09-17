@@ -10,6 +10,8 @@ type ButtonProps = {
   loadingLabel?: React.ReactNode
   onClick?: () => void
   className?: string
+  /** Associate with a form when the button lives outside it. */
+  form?: string
 }
 
 const Button = ({
@@ -20,10 +22,12 @@ const Button = ({
   loadingLabel,
   onClick,
   className = "",
+  form,
 }: ButtonProps) => {
   return (
     <button
       type={type}
+      form={form}
       onClick={onClick}
       disabled={disabled || loading}
       aria-busy={loading || undefined}

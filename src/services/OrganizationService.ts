@@ -8,6 +8,12 @@ export type OrganizationListItem = {
     slug: string;
     status: string;
     role: string;
+    /** Present on current API; optional for older cached payloads. */
+    isPersonal?: boolean;
+    permissions?: {
+        canEdit: boolean;
+        canDelete: boolean;
+    };
     createdAt: string;
     updatedAt: string;
 };
@@ -30,6 +36,22 @@ class OrganizationService extends Service {
         }
 
         return this.request<OrganizationListItem[]>(`${API_URL}/api/v1/organizations`, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+    }
+
+    async get(
+        token: string,
+        orgId: string,
+    ): Promise<[OrganizationListItem | null, string | undefined]> {
+        if (!API_URL) {
+            return [null, "VITE_API_URL is not configured"];
+        }
+
+        return this.request<OrganizationListItem>(`${API_URL}/api/v1/organizations/${orgId}`, {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,

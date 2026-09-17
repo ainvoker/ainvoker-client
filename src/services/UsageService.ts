@@ -41,11 +41,20 @@ export type OrgUsageByModel = {
     percentOfTokenQuota: number | null;
 };
 
+export type UsageDailyPoint = {
+    date: string;
+    requestsUsed: number;
+    tokensUsed: number;
+    successfulRequests: number;
+    failedRequests: number;
+};
+
 export type OrganizationUsage = {
     plan: UsagePlanSnapshot | null;
     period: UsagePeriod;
     projects: OrgUsageProject[];
     byModel: OrgUsageByModel[];
+    daily: UsageDailyPoint[];
     recentRequests: OrgRecentRequest[];
 };
 
@@ -66,10 +75,14 @@ export type ProjectUsage = {
     };
     plan: UsagePlanSnapshot | null;
     period: ProjectUsagePeriod;
+    organizationPeriod: UsagePeriod;
     keys: {
         total: number;
         active: number;
     };
+    byModel: OrgUsageByModel[];
+    daily: UsageDailyPoint[];
+    organizationDaily: UsageDailyPoint[];
     recentRequests: AiRequestSummary[];
 };
 

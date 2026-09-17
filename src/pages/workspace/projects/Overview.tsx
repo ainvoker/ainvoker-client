@@ -6,10 +6,13 @@ import {
   HiOutlineKey,
 } from "react-icons/hi2"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
-import StatCard from "../../../components/workspace/StatCard"
-import QuotaBars from "../../../components/workspace/QuotaBars"
+import WorkspaceQuotaStrip from "../../../components/workspace/WorkspaceQuotaStrip"
+import SuccessArc from "../../../components/workspace/SuccessArc"
+import PeakDayBars from "../../../components/workspace/PeakDayBars"
+import QuotaPaceChart from "../../../components/workspace/QuotaPaceChart"
+import ShareBars from "../../../components/workspace/ShareBars"
 import RecentRequestsTable from "../../../components/workspace/RecentRequestsTable"
-import Skeleton, { SkeletonCard } from "../../../components/common/Skeleton"
+import Skeleton from "../../../components/common/Skeleton"
 import { useAuth } from "../../../contexts/AuthContext"
 import { useWorkspace } from "../../../contexts/WorkspaceContext"
 import UsageService, { type ProjectUsage } from "../../../services/UsageService"
@@ -25,7 +28,43 @@ import {
   isProjectInactive,
   projectStatusBadgeClass,
 } from "../../../utils/projects"
+import type { BindingQuota } from "../../../utils/quota"
 import { routes } from "../../../utils/navigation"
+
+const OverviewSkeleton = () => (
+  <div className="flex flex-col gap-2.5" aria-busy="true" role="status">
+    <span className="sr-only">Loading overview…</span>
+    <Skeleton className="h-14 rounded-2xl" />
+    <div className="grid gap-2.5 sm:grid-cols-3">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Skeleton key={i} className="h-28 rounded-2xl" />
+      ))}
+    </div>
+    <Skeleton className="h-48 rounded-2xl" />
+    <div className="grid gap-2.5 sm:grid-cols-3">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Skeleton key={i} className="h-14 rounded-2xl" />
+      ))}
+    </div>
+    <Skeleton className="h-36 rounded-2xl" />
+  </div>
+)
+
+/** Binding used only to pick series (requests vs tokens) for the project burn chart. */
+const projectBurnBinding = (
+  requestsUsed: number,
+  tokensUsed: number,
+): BindingQuota => {
+  const preferTokens = tokensUsed > requestsUsed * 100
+  return {
+    resource: preferTokens ? "tokens" : "requests",
+    used: preferTokens ? tokensUsed : requestsUsed,
+    limit: 0,
+    remaining: 0,
+    percentUsed: 0,
+    unlimited: true,
+  }
+}
 
 const Overview = () => {
   const { projectId } = useParams<{ projectId: string }>()
@@ -70,6 +109,8 @@ const Overview = () => {
 
   const project = usage?.project ?? contextProject
   const period = usage?.period
+  const orgPeriod = usage?.organizationPeriod
+  const daily = usage?.daily ?? []
   const rate = period
     ? successRatePercent(period.successfulRequests, period.failedRequests)
     : null
@@ -80,16 +121,36 @@ const Overview = () => {
     : null
   const status = project?.status
 
+  const projectShareOfWorkspace = useMemo(() => {
+    const orgRequests = orgPeriod?.requestsUsed ?? 0
+    const projectRequests = period?.requestsUsed ?? 0
+    if (orgRequests <= 0) return null
+    return Math.round((projectRequests / orgRequests) * 100)
+  }, [orgPeriod?.requestsUsed, period?.requestsUsed])
+
+  const modelShareItems = useMemo(
+    () =>
+      (usage?.byModel ?? []).map((row) => ({
+        id: String(row.modelId),
+        name: row.model,
+        value: row.tokensUsed,
+      })),
+    [usage?.byModel],
+  )
+
+  const burnBinding = projectBurnBinding(
+    period?.requestsUsed ?? 0,
+    period?.tokensUsed ?? 0,
+  )
+
   return (
     <WorkspacePage
       title={title}
-      description="Project health, recent invocations, and infrastructure status at a glance."
+      description="Project health, burn, and shortcuts — workspace quota stays in context."
     >
       {project ? (
-        <div className="mb-1 flex flex-wrap items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
-          {environment ? (
-            <span className="text-xs tracking-wide uppercase">{environment}</span>
-          ) : null}
+        <div className="mb-0.5 flex flex-wrap items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+          {environment ? <span className="text-xs">{environment}</span> : null}
           {status && isProjectInactive(status) ? (
             <span
               className={[
@@ -110,147 +171,141 @@ const Overview = () => {
       ) : null}
 
       {isLoading && !usage ? (
-        <div className="flex flex-col gap-5" aria-busy="true" role="status">
-          <span className="sr-only">Loading overview…</span>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                key={i}
-                className="rounded-2xl border border-neutral-200/80 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900"
-              >
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="mt-3 h-7 w-16" />
-              </div>
-            ))}
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 rounded-2xl" />
-            ))}
-          </div>
-          <SkeletonCard />
-        </div>
+        <OverviewSkeleton />
       ) : (
-        <div className="flex flex-col gap-5">
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              label="Requests (month)"
-              value={formatCompactNumber(period?.requestsUsed ?? 0)}
+        <div className="flex flex-col gap-2.5">
+          <WorkspaceQuotaStrip
+            plan={usage?.plan ?? null}
+            organizationPeriod={orgPeriod ?? null}
+            organizationDaily={usage?.organizationDaily ?? []}
+            projectSharePercent={projectShareOfWorkspace}
+          />
+
+          <div className="grid gap-2.5 sm:grid-cols-3">
+            <SuccessArc
+              compact
+              percent={rate}
+              detail={
+                period
+                  ? `${formatCompactNumber(period.successfulRequests)} ok · ${formatCompactNumber(period.failedRequests)} failed`
+                  : undefined
+              }
             />
-            <StatCard
-              label="Tokens (month)"
-              value={formatTokens(period?.tokensUsed ?? 0)}
-            />
-            <StatCard
-              label="Avg latency"
-              value={formatLatency(period?.avgLatency ?? null)}
-              hint="Successful requests"
-            />
-            <StatCard
-              label="API keys"
-              value={`${usage?.keys.active ?? 0} / ${usage?.keys.total ?? 0}`}
-              hint="Active / total"
+            <section className="rounded-2xl border border-neutral-200/80 bg-white p-3.5 dark:border-neutral-700 dark:bg-neutral-900">
+              <p className="text-[15px] font-medium text-accent">Avg latency</p>
+              <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums text-accent">
+                {formatLatency(period?.avgLatency ?? null)}
+              </p>
+              <p className="mt-0.5 text-xs text-neutral-400">
+                Successful requests this month
+              </p>
+            </section>
+            <section className="rounded-2xl border border-neutral-200/80 bg-white p-3.5 dark:border-neutral-700 dark:bg-neutral-900">
+              <p className="text-[15px] font-medium text-accent">API keys</p>
+              <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums text-accent">
+                {usage?.keys.active ?? 0}
+                <span className="text-base font-normal text-neutral-400">
+                  {" "}
+                  / {usage?.keys.total ?? 0}
+                </span>
+              </p>
+              <p className="mt-0.5 text-xs text-neutral-400">Active / total</p>
+            </section>
+          </div>
+
+          <div className="grid gap-2.5 lg:grid-cols-5">
+            <section className="rounded-2xl border border-neutral-200/80 bg-white p-3.5 dark:border-neutral-700 dark:bg-neutral-900 lg:col-span-3">
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between">
+                <h2 className="text-[15px] font-medium text-accent">
+                  Project burn this month
+                </h2>
+                <p className="text-xs tabular-nums text-neutral-400">
+                  {formatCompactNumber(period?.requestsUsed ?? 0)} requests ·{" "}
+                  {formatTokens(period?.tokensUsed ?? 0)} tokens
+                </p>
+              </div>
+              <QuotaPaceChart
+                daily={daily}
+                binding={burnBinding}
+                showPaceLine={false}
+                className="mt-2"
+              />
+            </section>
+            <PeakDayBars
+              daily={daily}
+              compact
+              className="lg:col-span-2"
             />
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-2.5 sm:grid-cols-3">
             <Link
               to={projectId ? routes.projectApiKeys(projectId) : "#"}
-              className="flex items-center gap-3 rounded-2xl border border-neutral-200/80 bg-white p-4 transition hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-600"
+              className="flex items-center gap-2.5 rounded-2xl border border-neutral-200/80 bg-white px-3.5 py-3 transition hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-600"
             >
               <HiOutlineKey
-                className="size-5 text-neutral-400"
+                className="size-5 shrink-0 text-neutral-400"
                 aria-hidden
               />
-              <div>
-                <p className="text-sm font-medium text-accent">API Keys</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-accent">API keys</p>
+                <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
                   Manage credentials
                 </p>
               </div>
             </Link>
             <Link
               to={projectId ? routes.projectLogs(projectId) : "#"}
-              className="flex items-center gap-3 rounded-2xl border border-neutral-200/80 bg-white p-4 transition hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-600"
+              className="flex items-center gap-2.5 rounded-2xl border border-neutral-200/80 bg-white px-3.5 py-3 transition hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-600"
             >
               <HiOutlineDocumentText
-                className="size-5 text-neutral-400"
+                className="size-5 shrink-0 text-neutral-400"
                 aria-hidden
               />
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-accent">Logs</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
                   Inspect invocations
                 </p>
               </div>
             </Link>
             <Link
               to={projectId ? routes.projectSettings(projectId) : "#"}
-              className="flex items-center gap-3 rounded-2xl border border-neutral-200/80 bg-white p-4 transition hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-600"
+              className="flex items-center gap-2.5 rounded-2xl border border-neutral-200/80 bg-white px-3.5 py-3 transition hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-600"
             >
               <HiOutlineCog6Tooth
-                className="size-5 text-neutral-400"
+                className="size-5 shrink-0 text-neutral-400"
                 aria-hidden
               />
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-accent">Settings</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
                   Project & origins
                 </p>
               </div>
             </Link>
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-2">
-            <QuotaBars
-              plan={usage?.plan ?? null}
-              requestsUsed={period?.requestsUsed ?? 0}
-              tokensUsed={period?.tokensUsed ?? 0}
-              showBillingCta
-            />
-            <section className="rounded-2xl border border-neutral-200/80 bg-white p-5 dark:border-neutral-700 dark:bg-neutral-900">
-              <h2 className="text-sm font-semibold text-accent">
-                Period health
+          <div className="grid gap-2.5 lg:grid-cols-5">
+            <div className="lg:col-span-2">
+              <ShareBars
+                title="Share of tokens by model"
+                items={modelShareItems}
+                formatValue={formatTokens}
+              />
+            </div>
+            <section className="space-y-2 lg:col-span-3">
+              <h2 className="text-[15px] font-medium text-accent">
+                Recent invocations
               </h2>
-              <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <dt className="text-xs text-neutral-400">Success rate</dt>
-                  <dd className="mt-1 text-lg font-semibold text-accent">
-                    {rate == null ? "—" : `${rate}%`}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-neutral-400">Successful</dt>
-                  <dd className="mt-1 text-lg font-semibold tabular-nums text-accent">
-                    {formatCompactNumber(period?.successfulRequests ?? 0)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-neutral-400">Failed</dt>
-                  <dd className="mt-1 text-lg font-semibold tabular-nums text-accent">
-                    {formatCompactNumber(period?.failedRequests ?? 0)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-neutral-400">Active keys</dt>
-                  <dd className="mt-1 text-lg font-semibold tabular-nums text-accent">
-                    {formatCompactNumber(usage?.keys.active ?? 0)}
-                  </dd>
-                </div>
-              </dl>
+              <RecentRequestsTable
+                items={usage?.recentRequests ?? []}
+                logsHref={projectId ? routes.projectLogs(projectId) : undefined}
+                variant="cards"
+                emptyDescription="Inference traffic for this project will show up here."
+              />
             </section>
           </div>
-
-          <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-accent">
-              Recent invocations
-            </h2>
-            <RecentRequestsTable
-              items={usage?.recentRequests ?? []}
-              logsHref={projectId ? routes.projectLogs(projectId) : undefined}
-              emptyDescription="Inference traffic for this project will show up here."
-            />
-          </section>
         </div>
       )}
     </WorkspacePage>

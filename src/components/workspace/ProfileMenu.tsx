@@ -148,6 +148,15 @@ const ProfileMenu = ({ onNavigate }: ProfileMenuProps) => {
               <HiOutlineUserCircle className="size-4 shrink-0 opacity-70" aria-hidden />
               Profile settings
             </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => go(routes.settingsSecurity)}
+              className={menuItemClass}
+            >
+              <HiOutlineShieldCheck className="size-4 shrink-0 opacity-70" aria-hidden />
+              Security
+            </button>
           </div>
 
           <div className="border-b border-neutral-100 p-1.5 dark:border-neutral-800">

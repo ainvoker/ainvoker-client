@@ -12,6 +12,7 @@ import {
   HiOutlineUsers,
   HiOutlineSquares2X2,
   HiOutlinePaintBrush,
+  HiOutlineShieldCheck,
   HiOutlineUserCircle,
   HiOutlineBuildingOffice2,
 } from "react-icons/hi2"
@@ -43,6 +44,7 @@ export const routes = {
     `/settings/billing/checkout?orgId=${encodeURIComponent(orgId)}&plan=${plan}`,
   settingsProfile: "/settings/profile",
   settingsAppearance: "/settings/appearance",
+  settingsSecurity: "/settings/security",
   inviteAccept: "/invites/accept",
   /** @deprecated Use settingsBilling — kept as alias for redirects */
   billing: "/settings/billing",
@@ -101,6 +103,11 @@ export const settingsNavGroups: SettingsNavGroup[] = [
         path: routes.settingsAppearance,
         icon: HiOutlinePaintBrush,
       },
+      {
+        label: "Security",
+        path: routes.settingsSecurity,
+        icon: HiOutlineShieldCheck,
+      },
     ],
   },
 ]
@@ -111,6 +118,7 @@ export const settingsSectionLabels: Record<string, string> = {
   billing: "Billing",
   profile: "Profile",
   appearance: "Appearance",
+  security: "Security",
 }
 
 export const getProjectNav = (projectId: string): NavLinkItem[] => [

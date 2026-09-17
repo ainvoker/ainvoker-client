@@ -1,5 +1,17 @@
 import { authClient } from "../utils/auth";
+import type { AuthAccount } from "../utils/accountSecurity";
 import Service from "./Service";
+
+export type AuthSessionRow = {
+    id: string
+    token: string
+    userId: string
+    expiresAt: Date | string
+    createdAt: Date | string
+    updatedAt: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+}
 
 class AuthService extends Service {
     async signup({ name, email, password }: { name: string, email: string, password: string }) {
@@ -126,6 +138,144 @@ class AuthService extends Service {
                 newUserCallbackURL: "/",
                 errorCallbackURL: "/",
             })
+        })
+    }
+
+    async listAccounts() {
+        return this.handle(async () => {
+            const { data, error } = await authClient.listAccounts()
+
+            if (error) {
+                throw error
+            }
+
+            return (data ?? []) as AuthAccount[]
+        })
+    }
+
+    async linkSocial({
+        provider,
+        callbackURL,
+        errorCallbackURL,
+    }: {
+        provider: "google" | "github"
+        callbackURL: string
+        errorCallbackURL?: string
+    }) {
+        return this.handle(async () => {
+            const { data, error } = await authClient.linkSocial({
+                provider,
+                callbackURL,
+                errorCallbackURL: errorCallbackURL ?? callbackURL,
+            })
+
+            if (error) {
+                throw error
+            }
+
+            return data
+        })
+    }
+
+    async unlinkAccount({
+        providerId,
+        accountId,
+    }: {
+        providerId: string
+        accountId?: string
+    }) {
+        return this.handle(async () => {
+            const { data, error } = await authClient.unlinkAccount({
+                providerId,
+                ...(accountId ? { accountId } : {}),
+            })
+
+            if (error) {
+                throw error
+            }
+
+            return data
+        })
+    }
+
+    async changePassword({
+        currentPassword,
+        newPassword,
+        revokeOtherSessions,
+    }: {
+        currentPassword: string
+        newPassword: string
+        revokeOtherSessions?: boolean
+    }) {
+        return this.handle(async () => {
+            const { data, error } = await authClient.changePassword({
+                currentPassword,
+                newPassword,
+                revokeOtherSessions,
+            })
+
+            if (error) {
+                throw error
+            }
+
+            return data
+        })
+    }
+
+    async listSessions() {
+        return this.handle(async () => {
+            const { data, error } = await authClient.listSessions()
+
+            if (error) {
+                throw error
+            }
+
+            return (data ?? []) as AuthSessionRow[]
+        })
+    }
+
+    async revokeSession({ token }: { token: string }) {
+        return this.handle(async () => {
+            const { data, error } = await authClient.revokeSession({ token })
+
+            if (error) {
+                throw error
+            }
+
+            return data
+        })
+    }
+
+    async revokeOtherSessions() {
+        return this.handle(async () => {
+            const { data, error } = await authClient.revokeOtherSessions()
+
+            if (error) {
+                throw error
+            }
+
+            return data
+        })
+    }
+
+    async deleteUser({
+        password,
+        callbackURL,
+    }: {
+        password?: string
+        callbackURL?: string
+    } = {}) {
+        return this.handle(async () => {
+            const { data, error } = await authClient.deleteUser({
+                ...(password ? { password } : {}),
+                ...(callbackURL ? { callbackURL } : {}),
+            })
+
+            if (error) {
+                throw error
+            }
+
+            return data
         })
     }
 }

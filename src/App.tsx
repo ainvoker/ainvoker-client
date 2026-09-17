@@ -30,6 +30,7 @@ import BillingCheckoutRedirect from "./pages/workspace/settings/BillingCheckoutR
 import SettingsGeneral from "./pages/workspace/settings/General"
 import SettingsProfile from "./pages/workspace/settings/Profile"
 import SettingsAppearance from "./pages/workspace/settings/Appearance"
+import SettingsSecurity from "./pages/workspace/settings/Security"
 import Overview from "./pages/workspace/projects/Overview"
 import ApiKeys from "./pages/workspace/projects/ApiKeys"
 import Models from "./pages/workspace/projects/Models"
@@ -115,6 +116,7 @@ function App() {
                         <Route path="billing" element={<Billing />} />
                         <Route path="profile" element={<SettingsProfile />} />
                         <Route path="appearance" element={<SettingsAppearance />} />
+                        <Route path="security" element={<SettingsSecurity />} />
                       </Route>
                       <Route path="billing/checkout" element={<BillingCheckout />} />
                     </Route>

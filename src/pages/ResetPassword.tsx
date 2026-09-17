@@ -2,29 +2,20 @@
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod";
 import InputGroup from "../components/common/InputGroup"
-import { z } from "zod";
 import AuthService from "../services/AuthService";
 import Button from "../components/common/Button";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import {
+    passwordWithConfirmSchema,
+    type PasswordWithConfirmValues,
+} from "../types/common/passwordSchema";
 
-export const resetPasswordSchema = z.object({
-    password: z
-        .string()
-        .min(8, "Password must be at least 8 characters")
-        .max(100, "Password cannot exceed 100 characters")
-        .regex(/[A-Z]/, "Password must contain an uppercase letter")
-        .regex(/[a-z]/, "Password must contain a lowercase letter")
-        .regex(/[0-9]/, "Password must contain a number"),
-    confirmPassword: z.string()
-}).refine(data => data.password === data.confirmPassword, {
-    message: "Password do not match",
-    path: ['confirmPassword']
-})
+export const resetPasswordSchema = passwordWithConfirmSchema
 
-export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+export type ResetPasswordFormValues = PasswordWithConfirmValues;
 
 const ResetPassword = () => {
     const { user, refresh, otp, setVerificationCode } = useAuth()

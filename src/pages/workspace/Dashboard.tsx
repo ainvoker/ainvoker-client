@@ -206,6 +206,8 @@ const Dashboard = () => {
                   requestsUsed={period?.requestsUsed ?? 0}
                   tokensUsed={period?.tokensUsed ?? 0}
                   daily={daily}
+                  dailyByProject={usage?.dailyByProject}
+                  dailyByModel={usage?.dailyByModel}
                   footerSegments={footerSegments}
                   formatSegmentValue={formatCompactNumber}
                 />

@@ -49,12 +49,22 @@ export type UsageDailyPoint = {
     failedRequests: number;
 };
 
+export type UsageDailySegmentPoint = {
+    date: string;
+    id: string;
+    name: string;
+    requestsUsed: number;
+    tokensUsed: number;
+};
+
 export type OrganizationUsage = {
     plan: UsagePlanSnapshot | null;
     period: UsagePeriod;
     projects: OrgUsageProject[];
     byModel: OrgUsageByModel[];
     daily: UsageDailyPoint[];
+    dailyByProject: UsageDailySegmentPoint[];
+    dailyByModel: UsageDailySegmentPoint[];
     recentRequests: OrgRecentRequest[];
 };
 

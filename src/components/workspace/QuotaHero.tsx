@@ -1,12 +1,13 @@
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import type {
   UsageDailyPoint,
+  UsageDailySegmentPoint,
   UsagePlanSnapshot,
 } from "../../services/UsageService"
 import {
   computePaceInsight,
   formatQuotaValue,
-  isQuotaElevated,
   paceSentence,
   quotaToneClass,
   remainingLabel,
@@ -14,8 +15,7 @@ import {
   secondaryResource,
   resourceLabel,
 } from "../../utils/quota"
-import { routes } from "../../utils/navigation"
-import QuotaPaceChart from "./QuotaPaceChart"
+import QuotaPaceChart, { type QuotaPaceSeries } from "./QuotaPaceChart"
 
 export type QuotaHeroSegment = {
   id: string
@@ -24,17 +24,78 @@ export type QuotaHeroSegment = {
   href?: string
 }
 
+type ChartWindow = "7d" | "14d" | "month"
+type ChartGroupBy = "total" | "project" | "model"
+
 type QuotaHeroProps = {
   plan: UsagePlanSnapshot | null
   requestsUsed: number
   tokensUsed: number
   daily: UsageDailyPoint[]
   paceDaily?: UsageDailyPoint[]
+  dailyByProject?: UsageDailySegmentPoint[]
+  dailyByModel?: UsageDailySegmentPoint[]
   subline?: string | null
-  showBillingCta?: boolean
   /** Top share segments rendered under the chart (e.g. projects). */
   footerSegments?: QuotaHeroSegment[]
   formatSegmentValue?: (value: number) => string
+}
+
+const WINDOW_OPTIONS: { value: ChartWindow; label: string }[] = [
+  { value: "7d", label: "7d" },
+  { value: "14d", label: "14d" },
+  { value: "month", label: "Month" },
+]
+
+const SERIES_OPTIONS: { value: QuotaPaceSeries; label: string }[] = [
+  { value: "cumulative", label: "Cumulative" },
+  { value: "daily", label: "Daily" },
+]
+
+const GROUP_OPTIONS: { value: ChartGroupBy; label: string }[] = [
+  { value: "total", label: "Total" },
+  { value: "project", label: "Project" },
+  { value: "model", label: "Model" },
+]
+
+function SegmentedControl<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string
+  options: { value: T; label: string }[]
+  value: T
+  onChange: (next: T) => void
+}) {
+  return (
+    <div
+      className="inline-flex rounded-lg border border-neutral-200 bg-neutral-50 p-0.5 dark:border-neutral-700 dark:bg-neutral-800"
+      role="group"
+      aria-label={label}
+    >
+      {options.map((opt) => {
+        const selected = value === opt.value
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => onChange(opt.value)}
+            className={[
+              "rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors",
+              selected
+                ? "bg-accent text-white dark:text-neutral-950"
+                : "text-neutral-500 hover:text-accent dark:text-neutral-400 dark:hover:text-neutral-100",
+            ].join(" ")}
+          >
+            {opt.label}
+          </button>
+        )
+      })}
+    </div>
+  )
 }
 
 const QuotaHero = ({
@@ -43,11 +104,16 @@ const QuotaHero = ({
   tokensUsed,
   daily,
   paceDaily,
+  dailyByProject,
+  dailyByModel,
   subline,
-  showBillingCta = true,
   footerSegments,
   formatSegmentValue = (v) => v.toLocaleString(),
 }: QuotaHeroProps) => {
+  const [chartWindow, setChartWindow] = useState<ChartWindow>("month")
+  const [chartSeries, setChartSeries] = useState<QuotaPaceSeries>("cumulative")
+  const [groupBy, setGroupBy] = useState<ChartGroupBy>("total")
+
   const binding = resolveBindingQuota(requestsUsed, tokensUsed, plan)
   const secondary = secondaryResource(
     binding,
@@ -58,17 +124,7 @@ const QuotaHero = ({
   const paceSeries = paceDaily ?? daily
   const pace = computePaceInsight(paceSeries, binding)
   const sentence = paceSentence(binding, pace)
-  const elevated = isQuotaElevated(binding.percentUsed, binding.unlimited)
   const splitSeries = paceDaily != null && paceDaily !== daily
-
-  const inactive =
-    !plan ||
-    (plan.status !== "ACTIVE" && plan.status !== "PAST_DUE") ||
-    (plan.expiresAt != null &&
-      !Number.isNaN(Date.parse(plan.expiresAt)) &&
-      Date.parse(plan.expiresAt) <= Date.now())
-
-  const showBillingPrimary = showBillingCta && (inactive || elevated)
 
   const heroValue = binding.unlimited
     ? formatQuotaValue(binding.resource, binding.used)
@@ -84,6 +140,16 @@ const QuotaHero = ({
     .slice()
     .sort((a, b) => b.value - a.value)
     .slice(0, 3)
+
+  const windowDays =
+    chartWindow === "7d" ? 7 : chartWindow === "14d" ? 14 : undefined
+
+  const breakdown =
+    groupBy === "project"
+      ? dailyByProject
+      : groupBy === "model"
+        ? dailyByModel
+        : undefined
 
   return (
     <section className="rounded-2xl border border-neutral-200/80 bg-white p-5 md:p-6 dark:border-neutral-700 dark:bg-neutral-900">
@@ -115,31 +181,28 @@ const QuotaHero = ({
             </p>
           ) : null}
         </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
-          <Link
-            to={routes.projects}
-            className="inline-flex items-center justify-center rounded-lg border border-neutral-200 px-3.5 py-2 text-sm font-medium text-accent transition hover:border-neutral-300 dark:border-neutral-700 dark:hover:border-neutral-600"
-          >
-            Projects
-          </Link>
-          {showBillingCta ? (
-            showBillingPrimary ? (
-              <Link
-                to={routes.billing}
-                className="inline-flex items-center justify-center rounded-lg bg-accent px-3.5 py-2 text-sm font-medium text-white transition hover:brightness-95 dark:text-neutral-950"
-              >
-                Manage billing
-              </Link>
-            ) : (
-              <Link
-                to={routes.billing}
-                className="inline-flex items-center justify-center rounded-lg border border-neutral-200 px-3.5 py-2 text-sm font-medium text-accent transition hover:border-neutral-300 dark:border-neutral-700 dark:hover:border-neutral-600"
-              >
-                Billing
-              </Link>
-            )
-          ) : null}
-        </div>
+        {plan ? (
+          <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
+            <SegmentedControl
+              label="Chart time window"
+              options={WINDOW_OPTIONS}
+              value={chartWindow}
+              onChange={setChartWindow}
+            />
+            <SegmentedControl
+              label="Chart series"
+              options={SERIES_OPTIONS}
+              value={chartSeries}
+              onChange={setChartSeries}
+            />
+            <SegmentedControl
+              label="Group by"
+              options={GROUP_OPTIONS}
+              value={groupBy}
+              onChange={setGroupBy}
+            />
+          </div>
+        ) : null}
       </div>
 
       {!plan ? (
@@ -152,6 +215,9 @@ const QuotaHero = ({
             daily={daily}
             binding={binding}
             showPaceLine={!splitSeries}
+            windowDays={windowDays}
+            series={chartSeries}
+            breakdown={breakdown}
             className="mt-5 -mx-1"
           />
           {splitSeries ? (
@@ -161,7 +227,7 @@ const QuotaHero = ({
             </p>
           ) : null}
 
-          {topSegments.length > 0 && segmentTotal > 0 ? (
+          {topSegments.length > 0 && segmentTotal > 0 && groupBy === "total" ? (
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               {topSegments.map((seg) => {
                 const pct = Math.round((seg.value / segmentTotal) * 100)

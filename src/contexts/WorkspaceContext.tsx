@@ -17,6 +17,7 @@ import BillingService, {
 import OrganizationService, {
   type CreateOrganizationInput,
   type OrganizationListItem,
+  type UpdateOrganizationInput,
 } from "../services/OrganizationService"
 import ProjectService, {
   type AppProject,
@@ -73,6 +74,10 @@ type WorkspaceContextValue = {
   createWorkspace: (
     input: CreateOrganizationInput,
   ) => Promise<[OrganizationListItem | null, ApiErrorInfo | undefined]>
+  updateWorkspace: (
+    organizationId: string,
+    input: UpdateOrganizationInput,
+  ) => Promise<[OrganizationListItem | null, ApiErrorInfo | undefined]>
   deleteWorkspace: (
     organizationId: string,
   ) => Promise<[true | null, ApiErrorInfo | undefined]>
@@ -99,6 +104,10 @@ const WorkspaceContext = createContext<WorkspaceContextValue>({
   updateProject: async () => [null, "Workspace is not ready"],
   deleteProject: async () => [null, "Workspace is not ready"],
   createWorkspace: async () => [
+    null,
+    { status: 0, message: "Workspace is not ready" },
+  ],
+  updateWorkspace: async () => [
     null,
     { status: 0, message: "Workspace is not ready" },
   ],
@@ -344,6 +353,36 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     [token, projectMatch, navigate],
   )
 
+  const updateWorkspace = useCallback(
+    async (
+      organizationId: string,
+      input: UpdateOrganizationInput,
+    ): Promise<[OrganizationListItem | null, ApiErrorInfo | undefined]> => {
+      if (!token) {
+        return [null, { status: 0, message: "Not signed in" }]
+      }
+
+      const [org, err] = await OrganizationService.update(
+        token,
+        organizationId,
+        input,
+      )
+      if (err || !org) {
+        return [
+          null,
+          err ?? { status: 0, message: "Failed to update workspace" },
+        ]
+      }
+
+      setOrganizations((prev) =>
+        prev.map((item) => (item.id === org.id ? { ...item, ...org } : item)),
+      )
+
+      return [org, undefined]
+    },
+    [token],
+  )
+
   const deleteWorkspace = useCallback(
     async (
       organizationId: string,
@@ -433,6 +472,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       updateProject,
       deleteProject,
       createWorkspace,
+      updateWorkspace,
       deleteWorkspace,
       ensureProjectOrganization,
     }),
@@ -455,6 +495,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       updateProject,
       deleteProject,
       createWorkspace,
+      updateWorkspace,
       deleteWorkspace,
       ensureProjectOrganization,
     ],

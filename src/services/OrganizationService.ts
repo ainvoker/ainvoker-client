@@ -18,6 +18,11 @@ export type CreateOrganizationInput = {
     plan: "pro";
 };
 
+export type UpdateOrganizationInput = {
+    name?: string;
+    slug?: string;
+};
+
 class OrganizationService extends Service {
     async list(token: string): Promise<[OrganizationListItem[] | null, string | undefined]> {
         if (!API_URL) {
@@ -48,6 +53,28 @@ class OrganizationService extends Service {
             },
             body: JSON.stringify(input),
         });
+    }
+
+    async update(
+        token: string,
+        orgId: string,
+        input: UpdateOrganizationInput,
+    ): Promise<[OrganizationListItem | null, ApiErrorInfo | undefined]> {
+        if (!API_URL) {
+            return [null, { status: 0, message: "VITE_API_URL is not configured" }];
+        }
+
+        return this.requestDetailed<OrganizationListItem>(
+            `${API_URL}/api/v1/organizations/${orgId}`,
+            {
+                method: "PATCH",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(input),
+            },
+        );
     }
 
     async remove(

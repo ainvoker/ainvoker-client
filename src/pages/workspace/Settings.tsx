@@ -14,9 +14,12 @@ import { isPersonalWorkspace } from "../../utils/workspace"
 const inputClassName =
   "w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-accent outline-none ring-accent/30 placeholder:text-neutral-400 focus:ring-2 dark:border-neutral-700 dark:bg-neutral-900 dark:placeholder:text-neutral-500"
 
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
 const Settings = () => {
   const location = useLocation()
-  const { activeOrganization, role, isLoading, deleteWorkspace } = useWorkspace()
+  const { activeOrganization, role, isLoading, updateWorkspace, deleteWorkspace } =
+    useWorkspace()
   const { token, appBootstrap, patchAppUser } = useAuth()
 
   const appUser = appBootstrap?.user
@@ -27,8 +30,20 @@ const Settings = () => {
     activeOrganization && isPersonalWorkspace(activeOrganization.slug),
   )
 
+  const canEditWorkspace =
+    (role === "owner" || role === "admin") && Boolean(activeOrganization) && !isPersonal
   const canDeleteWorkspace =
     role === "owner" && activeOrganization && !isPersonal
+
+  const [workspaceName, setWorkspaceName] = useState(
+    activeOrganization?.name ?? "",
+  )
+  const [workspaceSlug, setWorkspaceSlug] = useState(
+    activeOrganization?.slug ?? "",
+  )
+  const [isSavingWorkspace, setIsSavingWorkspace] = useState(false)
+  const [workspaceError, setWorkspaceError] = useState<string | null>(null)
+  const [workspaceSuccess, setWorkspaceSuccess] = useState<string | null>(null)
 
   const [firstName, setFirstName] = useState(appUser?.firstName ?? "")
   const [lastName, setLastName] = useState(appUser?.lastName ?? "")
@@ -42,6 +57,17 @@ const Settings = () => {
   const [deleteConfirmName, setDeleteConfirmName] = useState("")
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setWorkspaceName(activeOrganization?.name ?? "")
+    setWorkspaceSlug(activeOrganization?.slug ?? "")
+    setWorkspaceError(null)
+    setWorkspaceSuccess(null)
+  }, [
+    activeOrganization?.id,
+    activeOrganization?.name,
+    activeOrganization?.slug,
+  ])
 
   useEffect(() => {
     setFirstName(appUser?.firstName ?? "")
@@ -60,19 +86,70 @@ const Settings = () => {
     return () => window.cancelAnimationFrame(id)
   }, [location.hash])
 
+  const workspaceDirty =
+    workspaceName.trim() !== (activeOrganization?.name ?? "") ||
+    workspaceSlug.trim() !== (activeOrganization?.slug ?? "")
+
   const deleteNameMatches =
     Boolean(activeOrganization) &&
     deleteConfirmName.trim() === activeOrganization?.name
 
   const handleCopySlug = async () => {
-    if (!activeOrganization?.slug) return
+    const slug = (canEditWorkspace ? workspaceSlug : activeOrganization?.slug)?.trim()
+    if (!slug) return
     try {
-      await navigator.clipboard.writeText(activeOrganization.slug)
+      await navigator.clipboard.writeText(slug)
       setCopiedSlug(true)
       window.setTimeout(() => setCopiedSlug(false), 1500)
     } catch {
       // ignore
     }
+  }
+
+  const handleSaveWorkspace = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!activeOrganization || !canEditWorkspace) return
+
+    const trimmedName = workspaceName.trim()
+    const trimmedSlug = workspaceSlug.trim().toLowerCase()
+    if (!trimmedName) {
+      setWorkspaceError("Name is required")
+      setWorkspaceSuccess(null)
+      return
+    }
+    if (!SLUG_PATTERN.test(trimmedSlug)) {
+      setWorkspaceError(
+        "Slug must be lowercase letters, numbers, and hyphens",
+      )
+      setWorkspaceSuccess(null)
+      return
+    }
+    if (trimmedSlug.startsWith("personal-")) {
+      setWorkspaceError("Slug cannot use the Personal workspace prefix")
+      setWorkspaceSuccess(null)
+      return
+    }
+
+    const input: { name?: string; slug?: string } = {}
+    if (trimmedName !== activeOrganization.name) input.name = trimmedName
+    if (trimmedSlug !== activeOrganization.slug) input.slug = trimmedSlug
+    if (!input.name && !input.slug) return
+
+    setIsSavingWorkspace(true)
+    setWorkspaceError(null)
+    setWorkspaceSuccess(null)
+
+    const [updated, err] = await updateWorkspace(activeOrganization.id, input)
+    setIsSavingWorkspace(false)
+
+    if (err || !updated) {
+      setWorkspaceError(err?.message ?? "Failed to save workspace")
+      return
+    }
+
+    setWorkspaceName(updated.name)
+    setWorkspaceSlug(updated.slug)
+    setWorkspaceSuccess("Workspace saved")
   }
 
   const handleSaveProfile = async (event: FormEvent) => {
@@ -149,7 +226,10 @@ const Settings = () => {
                 <InlineLoader label="Loading…" />
               </div>
             ) : activeOrganization ? (
-              <div className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5 dark:border-neutral-700 dark:bg-neutral-900">
+              <form
+                onSubmit={(event) => void handleSaveWorkspace(event)}
+                className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5 dark:border-neutral-700 dark:bg-neutral-900"
+              >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="inline-flex rounded-md bg-neutral-100 px-2 py-0.5 text-xs font-medium capitalize text-accent dark:bg-neutral-800">
                     {role ?? "member"}
@@ -159,23 +239,51 @@ const Settings = () => {
                   ) : null}
                 </div>
 
-                <div className="text-sm">
+                <label className="block text-sm">
                   <span className="mb-1.5 block text-xs tracking-wide text-neutral-400 uppercase">
                     Name
                   </span>
-                  <p className="font-medium text-accent">
-                    {activeOrganization.name}
-                  </p>
-                </div>
+                  {canEditWorkspace ? (
+                    <input
+                      type="text"
+                      value={workspaceName}
+                      onChange={(event) => setWorkspaceName(event.target.value)}
+                      className={inputClassName}
+                      disabled={isSavingWorkspace}
+                      maxLength={100}
+                      required
+                    />
+                  ) : (
+                    <p className="font-medium text-accent">
+                      {activeOrganization.name}
+                    </p>
+                  )}
+                </label>
 
                 <div className="text-sm">
                   <span className="mb-1.5 block text-xs tracking-wide text-neutral-400 uppercase">
                     Slug
                   </span>
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <code className="min-w-0 flex-1 truncate rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 font-mono text-xs text-accent dark:border-neutral-700 dark:bg-neutral-950">
-                      {activeOrganization.slug}
-                    </code>
+                    {canEditWorkspace ? (
+                      <input
+                        type="text"
+                        value={workspaceSlug}
+                        onChange={(event) =>
+                          setWorkspaceSlug(event.target.value.toLowerCase())
+                        }
+                        className={`${inputClassName} min-w-0 flex-1 font-mono text-xs`}
+                        disabled={isSavingWorkspace}
+                        maxLength={64}
+                        required
+                        autoComplete="off"
+                        spellCheck={false}
+                      />
+                    ) : (
+                      <code className="min-w-0 flex-1 truncate rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 font-mono text-xs text-accent dark:border-neutral-700 dark:bg-neutral-950">
+                        {activeOrganization.slug}
+                      </code>
+                    )}
                     <button
                       type="button"
                       onClick={() => void handleCopySlug()}
@@ -194,8 +302,36 @@ const Settings = () => {
                   <p className="text-sm text-neutral-500 dark:text-neutral-400">
                     Your Personal workspace cannot be renamed or deleted.
                   </p>
+                ) : !canEditWorkspace ? (
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                    Only owners and admins can edit this workspace.
+                  </p>
                 ) : null}
-              </div>
+
+                {workspaceError ? (
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    {workspaceError}
+                  </p>
+                ) : null}
+                {workspaceSuccess ? (
+                  <p className="text-sm text-emerald-600 dark:text-emerald-400">
+                    {workspaceSuccess}
+                  </p>
+                ) : null}
+
+                {canEditWorkspace ? (
+                  <div className="flex justify-end">
+                    <Button
+                      type="submit"
+                      className="!px-4 !py-2.5 text-sm"
+                      loading={isSavingWorkspace}
+                      disabled={!workspaceDirty}
+                    >
+                      Save changes
+                    </Button>
+                  </div>
+                ) : null}
+              </form>
             ) : (
               <p className="rounded-2xl border border-neutral-200/80 bg-white p-5 text-sm text-neutral-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400">
                 No workspace loaded.

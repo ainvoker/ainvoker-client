@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom"
+import { RouteErrorBoundary } from "../components/common/ErrorBoundary"
 import PageLoader from "../components/common/PageLoader"
 import { useAuth } from "../contexts/AuthContext"
 
@@ -20,7 +21,11 @@ const ProtectedRoutes = () => {
     }
     if (!user.emailVerified) return <Navigate to="/verify-email" replace />
 
-    return <Outlet />
+    return (
+        <RouteErrorBoundary fullScreen>
+            <Outlet />
+        </RouteErrorBoundary>
+    )
 }
 
 export default ProtectedRoutes

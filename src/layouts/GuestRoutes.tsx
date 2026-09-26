@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useSearchParams } from "react-router-dom"
+import { RouteErrorBoundary } from "../components/common/ErrorBoundary"
 import { useAuth } from "../contexts/AuthContext"
 
 function safeInviteNext(raw: string | null): string | null {
@@ -22,5 +23,9 @@ export default function GuestRoutes() {
         return <Navigate to={next ?? "/"} replace />
     }
 
-    return <Outlet />
+    return (
+        <RouteErrorBoundary fullScreen>
+            <Outlet />
+        </RouteErrorBoundary>
+    )
 }

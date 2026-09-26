@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom"
 
+import { RouteErrorBoundary } from "./components/common/ErrorBoundary"
 import { AuthProvider } from "./contexts/AuthContext"
 import { ThemeProvider } from "./contexts/ThemeContext"
 import { WorkspaceProvider } from "./contexts/WorkspaceContext"
@@ -55,77 +56,84 @@ function App() {
       <AuthProvider>
         <ThemeProvider>
           <BrowserRouter>
-            <WorkspaceProvider>
-              <Routes>
-                <Route index element={<Home />} />
-                <Route element={<LegalLayout />}>
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                </Route>
-                <Route path="/forgot-password" element={<ForgotPassword />} />
+            {/*
+              Root boundary sits under the router so it can reset on pathname,
+              and under Auth/Theme so a page crash does not remount those providers.
+              Outlet boundaries in the layouts catch page throws first and keep chrome.
+            */}
+            <RouteErrorBoundary fullScreen>
+              <WorkspaceProvider>
+                <Routes>
+                  <Route index element={<Home />} />
+                  <Route element={<LegalLayout />}>
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                  </Route>
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
 
-                <Route path="docs" element={<DocsLayout />}>
-                  <Route index element={<Navigate to="getting-started" replace />} />
-                  <Route path="getting-started" element={<GettingStarted />} />
-                  <Route path="authentication" element={<Authentication />} />
-                  <Route path="api-keys" element={<ApiKeysDocs />} />
-                  <Route path="text-chat" element={<TextChat />} />
-                  <Route path="models" element={<ModelsDocs />} />
-                  <Route path="limits" element={<Limits />} />
-                  <Route path="errors" element={<Errors />} />
-                  <Route path="sdk" element={<SdkOverview />} />
-                  <Route path="sdk/nodejs" element={<SdkNodejs />} />
-                  <Route path="sdk/browser" element={<SdkBrowser />} />
-                </Route>
-                <Route path="v1/docs/*" element={<Navigate to="/docs" replace />} />
+                  <Route path="docs" element={<DocsLayout />}>
+                    <Route index element={<Navigate to="getting-started" replace />} />
+                    <Route path="getting-started" element={<GettingStarted />} />
+                    <Route path="authentication" element={<Authentication />} />
+                    <Route path="api-keys" element={<ApiKeysDocs />} />
+                    <Route path="text-chat" element={<TextChat />} />
+                    <Route path="models" element={<ModelsDocs />} />
+                    <Route path="limits" element={<Limits />} />
+                    <Route path="errors" element={<Errors />} />
+                    <Route path="sdk" element={<SdkOverview />} />
+                    <Route path="sdk/nodejs" element={<SdkNodejs />} />
+                    <Route path="sdk/browser" element={<SdkBrowser />} />
+                  </Route>
+                  <Route path="v1/docs/*" element={<Navigate to="/docs" replace />} />
 
-                <Route path="/" element={<GuestRoutes />}>
-                  <Route path="signup" element={<Signup />} />
-                  <Route path="login" element={<Login />} />
-                </Route>
+                  <Route path="/" element={<GuestRoutes />}>
+                    <Route path="signup" element={<Signup />} />
+                    <Route path="login" element={<Login />} />
+                  </Route>
 
-                <Route path="/" element={<AuthRoutes />}>
-                  <Route path="verify-email" element={<VerifyEmail />} />
-                  <Route path="verify-reset-password" element={<VerifyResetPassword />} />
-                  <Route path="reset-password" element={<ResetPassword />} />
-                </Route>
+                  <Route path="/" element={<AuthRoutes />}>
+                    <Route path="verify-email" element={<VerifyEmail />} />
+                    <Route path="verify-reset-password" element={<VerifyResetPassword />} />
+                    <Route path="reset-password" element={<ResetPassword />} />
+                  </Route>
 
-                <Route path="/" element={<ProtectedRoutes />}>
-                  <Route path="invites/accept" element={<AcceptInvite />} />
-                  <Route element={<WorkspaceLayout />}>
-                    <Route path="projects" element={<Projects />} />
-                    <Route path="projects/:projectId" element={<ProjectLayout />}>
-                      <Route index element={<Overview />} />
-                      <Route path="api-keys" element={<ApiKeys />} />
-                      <Route path="models" element={<Models />} />
-                      <Route path="actions" element={<Actions />} />
-                      <Route path="analytics" element={<Analytics />} />
-                      <Route path="logs" element={<Logs />} />
-                      <Route path="settings" element={<ProjectSettings />} />
-                    </Route>
-
-                    <Route path="billing" element={<Navigate to="/settings/billing" replace />} />
-                    <Route path="billing/checkout" element={<BillingCheckoutRedirect />} />
-                    <Route path="team" element={<Navigate to="/settings/team" replace />} />
-
-                    <Route path="settings">
-                      <Route element={<SettingsLayout />}>
-                        <Route index element={<SettingsIndexRedirect />} />
-                        <Route path="general" element={<SettingsGeneral />} />
-                        <Route path="team" element={<Team />} />
-                        <Route path="billing" element={<Billing />} />
-                        <Route path="profile" element={<SettingsProfile />} />
-                        <Route path="appearance" element={<SettingsAppearance />} />
-                        <Route path="security" element={<SettingsSecurity />} />
+                  <Route path="/" element={<ProtectedRoutes />}>
+                    <Route path="invites/accept" element={<AcceptInvite />} />
+                    <Route element={<WorkspaceLayout />}>
+                      <Route path="projects" element={<Projects />} />
+                      <Route path="projects/:projectId" element={<ProjectLayout />}>
+                        <Route index element={<Overview />} />
+                        <Route path="api-keys" element={<ApiKeys />} />
+                        <Route path="models" element={<Models />} />
+                        <Route path="actions" element={<Actions />} />
+                        <Route path="analytics" element={<Analytics />} />
+                        <Route path="logs" element={<Logs />} />
+                        <Route path="settings" element={<ProjectSettings />} />
                       </Route>
-                      <Route path="billing/checkout" element={<BillingCheckout />} />
+
+                      <Route path="billing" element={<Navigate to="/settings/billing" replace />} />
+                      <Route path="billing/checkout" element={<BillingCheckoutRedirect />} />
+                      <Route path="team" element={<Navigate to="/settings/team" replace />} />
+
+                      <Route path="settings">
+                        <Route element={<SettingsLayout />}>
+                          <Route index element={<SettingsIndexRedirect />} />
+                          <Route path="general" element={<SettingsGeneral />} />
+                          <Route path="team" element={<Team />} />
+                          <Route path="billing" element={<Billing />} />
+                          <Route path="profile" element={<SettingsProfile />} />
+                          <Route path="appearance" element={<SettingsAppearance />} />
+                          <Route path="security" element={<SettingsSecurity />} />
+                        </Route>
+                        <Route path="billing/checkout" element={<BillingCheckout />} />
+                      </Route>
                     </Route>
                   </Route>
-                </Route>
 
-                <Route path="*" element={<>404</>} />
-              </Routes>
-            </WorkspaceProvider>
+                  <Route path="*" element={<>404</>} />
+                </Routes>
+              </WorkspaceProvider>
+            </RouteErrorBoundary>
           </BrowserRouter>
         </ThemeProvider>
       </AuthProvider>

@@ -21,6 +21,11 @@ export type MemberListItem = {
     user: MemberUser;
 };
 
+export type InviteDelivery = {
+    channel: "email" | "manual";
+    status: "sent" | "returned";
+};
+
 export type InviteItem = {
     id: string;
     email: string;
@@ -29,8 +34,9 @@ export type InviteItem = {
     expiresAt: string;
     createdAt: string;
     invitedBy: MemberUser;
+    /** Dev-only fallback when the API is allowed to return the link. */
     acceptUrl?: string;
-    token?: string;
+    delivery?: InviteDelivery;
 };
 
 export type InvitePreview = {

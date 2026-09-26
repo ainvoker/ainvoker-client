@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link, Outlet, useLocation } from "react-router-dom"
+import { RouteErrorBoundary } from "../components/common/ErrorBoundary"
 import { HiOutlineBars3, HiOutlineXMark } from "react-icons/hi2"
 import Logo from "../assets/logo.svg"
 import PublicAuthActions from "../components/common/PublicAuthActions"
@@ -71,7 +72,9 @@ const DocsLayout = () => {
         </aside>
 
         <main className="min-w-0 flex-1 px-4 py-10 md:px-8 lg:px-12 lg:py-12">
-          <Outlet />
+          <RouteErrorBoundary>
+            <Outlet />
+          </RouteErrorBoundary>
         </main>
       </div>
     </div>

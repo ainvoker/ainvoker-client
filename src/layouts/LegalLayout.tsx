@@ -1,4 +1,5 @@
 import { Outlet } from "react-router-dom"
+import { RouteErrorBoundary } from "../components/common/ErrorBoundary"
 import Footer from "../components/landing/Footer"
 import Nav from "../components/landing/Nav"
 
@@ -7,7 +8,9 @@ const LegalLayout = () => (
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 md:px-10 lg:px-20">
       <Nav />
       <main className="flex-1">
-        <Outlet />
+        <RouteErrorBoundary>
+          <Outlet />
+        </RouteErrorBoundary>
       </main>
       <Footer />
     </div>

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Outlet } from "react-router-dom"
+import { RouteErrorBoundary } from "../components/common/ErrorBoundary"
 import AppSidebar from "../components/workspace/AppSidebar"
 import BillingRequiredBanner from "../components/workspace/BillingRequiredBanner"
 import { useTheme } from "../contexts/ThemeContext"
@@ -43,7 +44,7 @@ const WorkspaceLayout = ({ children }: WorkspaceLayoutProps) => {
           }}
         />
         <BillingRequiredBanner />
-        {children ?? <Outlet />}
+        <RouteErrorBoundary>{children ?? <Outlet />}</RouteErrorBoundary>
       </div>
     </div>
   )

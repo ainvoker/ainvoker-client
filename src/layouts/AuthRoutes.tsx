@@ -1,4 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom"
+import { RouteErrorBoundary } from "../components/common/ErrorBoundary"
 import { useAuth } from "../contexts/AuthContext"
 
 const AuthRoutes = () => {
@@ -8,7 +9,9 @@ const AuthRoutes = () => {
     if (user && user.emailVerified) return <Navigate to={'/'} replace />
 
     return (
-        <Outlet />
+        <RouteErrorBoundary fullScreen>
+            <Outlet />
+        </RouteErrorBoundary>
     )
 }
 

@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom"
+import { RouteErrorBoundary } from "../components/common/ErrorBoundary"
 import { useWorkspace } from "../contexts/WorkspaceContext"
 import {
   routes,
@@ -73,7 +74,9 @@ const SettingsLayout = () => {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <Outlet />
+          <RouteErrorBoundary>
+            <Outlet />
+          </RouteErrorBoundary>
         </div>
       </div>
     </main>

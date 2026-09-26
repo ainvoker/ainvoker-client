@@ -87,7 +87,7 @@ const BillingCheckout = () => {
       setActiveWorkspace(orgId)
     }
     await refresh()
-    navigate(routes.billing, { replace: true })
+    navigate(routes.dashboard, { replace: true })
   }, [navigate, orgId, refresh, setActiveWorkspace])
 
   const handleFail = useCallback((message: string) => {

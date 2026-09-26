@@ -186,7 +186,7 @@ const Team = () => {
     setInviteEmail("")
     setInvites((prev) => {
       const without = prev.filter((row) => row.id !== invite.id)
-      return [{ ...invite, token: undefined, acceptUrl: undefined }, ...without]
+      return [{ ...invite, acceptUrl: undefined }, ...without]
     })
   }
 
@@ -233,7 +233,7 @@ const Team = () => {
     setInvites((prev) =>
       prev.map((row) =>
         row.id === invite.id
-          ? { ...invite, token: undefined, acceptUrl: undefined }
+          ? { ...invite, acceptUrl: undefined }
           : row,
       ),
     )
@@ -377,8 +377,7 @@ const Team = () => {
                 <div>
                   <h2 className="text-sm font-semibold text-accent">Invite</h2>
                   <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                    Create a link for someone to join. Email is not sent — copy
-                    the link and share it yourself.
+                    Send an email invite. They join from the link in that message.
                   </p>
                 </div>
 
@@ -418,9 +417,21 @@ const Team = () => {
                     loading={isCreatingInvite}
                     disabled={!token}
                   >
-                    Create invite
+                    Send invite
                   </Button>
                 </form>
+
+                {createdInvite && !createdInvite.acceptUrl ? (
+                  <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-950">
+                    <p className="text-sm font-medium text-accent">
+                      Invite sent to {createdInvite.email}
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                      They can accept from the email as {createdInvite.role}. The
+                      link expires {formatDate(createdInvite.expiresAt)}.
+                    </p>
+                  </div>
+                ) : null}
 
                 {createdInvite?.acceptUrl ? (
                   <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-950">
@@ -451,7 +462,8 @@ const Team = () => {
                     </div>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400">
                       Intended for {createdInvite.email} as {createdInvite.role}.
-                      Email is not sent by AInvoker.
+                      Email delivery is off in this environment — this message was
+                      not sent by AInvoker.
                     </p>
                   </div>
                 ) : null}
@@ -463,7 +475,7 @@ const Team = () => {
                 <div>
                   <h2 className="text-sm font-semibold text-accent">Pending invites</h2>
                   <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                    Revoke unused links or rotate a new one.
+                    Revoke a pending invite or resend the email.
                   </p>
                 </div>
 

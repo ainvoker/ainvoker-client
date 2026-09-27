@@ -17,9 +17,12 @@ const ModelsPage = () => (
   >
     <H2>Slug format</H2>
     <P>
-      Set <InlineCode>model</InlineCode> to <InlineCode>provider/model</InlineCode> — for
-      example <InlineCode>openai/gpt-4o-mini</InlineCode>. A model name without a provider is
-      rejected.
+      On the HTTP API, set <InlineCode>model</InlineCode> to{" "}
+      <InlineCode>provider/model</InlineCode> — for example{" "}
+      <InlineCode>openai/gpt-4o-mini</InlineCode>. A bare model name is accepted when exactly one
+      ACTIVE catalog row has that name; if two providers share the name, pass the full slug. The
+      SDK takes separate <InlineCode>provider</InlineCode> and <InlineCode>model</InlineCode>{" "}
+      fields and joins them before calling the gateway.
     </P>
 
     <H2>Available models</H2>
@@ -34,6 +37,12 @@ const ModelsPage = () => (
         ],
         [
           <InlineCode>gemini/gemini-3.6-flash</InlineCode>,
+          "Gemini",
+          "1,048,576",
+          "Yes",
+        ],
+        [
+          <InlineCode>gemini/gemini-3.5-flash-lite</InlineCode>,
           "Gemini",
           "1,048,576",
           "Yes",
@@ -53,6 +62,11 @@ const ModelsPage = () => (
       <li>
         <strong className="text-white">Pro</strong> and <strong className="text-white">Scale</strong>{" "}
         — all models in the catalog.
+      </li>
+      <li>
+        Each project has an allowlist under <strong className="text-white">Models</strong>. A
+        disabled model returns <InlineCode>403 MODEL_DISABLED</InlineCode> even when the plan
+        allows it.
       </li>
     </Ul>
     <Callout title="More models over time">

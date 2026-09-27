@@ -26,11 +26,20 @@ const ai = new AInvoker({
 })
 
 const result = await ai.text.chat({
-  model: "openai/gpt-4o-mini",
+  provider: "openai",
+  model: "gpt-4o-mini",
   messages: [{ role: "user", content: "Hello" }],
 })
 
 console.log(result.message.content)`
+
+const streamExample = `for await (const event of ai.text.stream({
+  provider: "openai",
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Hello" }],
+})) {
+  if (event.type === "delta") process.stdout.write(event.content)
+}`
 
 const GettingStarted = () => (
   <DocsArticle
@@ -83,6 +92,10 @@ const GettingStarted = () => (
     <CodeBlock code={curlExample} language="bash" title="curl" />
     <P>Or with the official SDK:</P>
     <CodeBlock code={sdkExample} language="typescript" title="TypeScript" />
+    <P>
+      For streaming, use <InlineCode>ai.text.stream</InlineCode> (same params as chat):
+    </P>
+    <CodeBlock code={streamExample} language="typescript" title="Stream" />
 
     <H2>What next</H2>
     <Ul>
@@ -103,6 +116,15 @@ const GettingStarted = () => (
           Text Chat
         </Link>{" "}
         — full request and response shape
+      </li>
+      <li>
+        <Link
+          to="/docs/text-stream"
+          className="text-white underline underline-offset-2 hover:text-[#ddd]"
+        >
+          Text Stream
+        </Link>{" "}
+        — SSE events and <InlineCode>ai.text.stream</InlineCode>
       </li>
       <li>
         <Link to="/docs/sdk" className="text-white underline underline-offset-2 hover:text-[#ddd]">

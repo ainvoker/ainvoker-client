@@ -41,6 +41,11 @@ const Errors = () => (
           <InlineCode>MODEL_NOT_ALLOWED_ON_PLAN</InlineCode>,
           "Model not available on your plan",
         ],
+        [
+          "403",
+          <InlineCode>MODEL_DISABLED</InlineCode>,
+          "Model disabled on the project allowlist",
+        ],
         ["404", <InlineCode>NOT_FOUND</InlineCode>, "Unknown model"],
         ["429", <InlineCode>RATE_LIMIT_EXCEEDED</InlineCode>, "Monthly request or token quota"],
         ["500", <InlineCode>INTERNAL_ERROR</InlineCode>, "Unexpected server error"],

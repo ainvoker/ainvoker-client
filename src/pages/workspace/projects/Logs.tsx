@@ -241,7 +241,6 @@ const Logs = () => {
                         <th className="px-4 py-3 font-medium">API key</th>
                         <th className="px-4 py-3 font-medium">Tokens</th>
                         <th className="px-4 py-3 font-medium">Latency</th>
-                        <th className="px-4 py-3 font-medium">Cost</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -281,9 +280,6 @@ const Logs = () => {
                           </td>
                           <td className="px-4 py-3 tabular-nums text-neutral-500 dark:text-neutral-400">
                             {formatLatency(item.latency)}
-                          </td>
-                          <td className="px-4 py-3 tabular-nums text-neutral-500 dark:text-neutral-400">
-                            {item.requestCost ?? "—"}
                           </td>
                         </tr>
                       ))}

@@ -21,7 +21,8 @@ const ai = new AInvoker({
 
 try {
   const result = await ai.text.chat({
-    model: "openai/gpt-4o-mini",
+    provider: "openai",
+    model: "gpt-4o-mini",
     messages: [{ role: "user", content: "Hello" }],
   })
   console.log(result.message.content)
@@ -31,6 +32,14 @@ try {
   } else {
     throw error
   }
+}`
+
+const streamExample = `for await (const event of ai.text.stream({
+  provider: "openai",
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Hello" }],
+})) {
+  if (event.type === "delta") process.stdout.write(event.content)
 }`
 
 const SdkOverview = () => (
@@ -47,6 +56,10 @@ const SdkOverview = () => (
 
     <H2>Quick start</H2>
     <CodeBlock code={quickStart} language="typescript" title="TypeScript" />
+    <P>
+      Stream with the same params via <InlineCode>ai.text.stream</InlineCode>:
+    </P>
+    <CodeBlock code={streamExample} language="typescript" title="Stream" />
 
     <H2>Client options</H2>
     <Ul>
@@ -63,8 +76,13 @@ const SdkOverview = () => (
     <H2>What it covers</H2>
     <P>
       The SDK exposes <InlineCode>ai.text.chat(…)</InlineCode> for{" "}
-      <InlineCode>POST /v1/text/chat</InlineCode>. It unwraps the response{" "}
-      <InlineCode>data</InlineCode> for you.
+      <InlineCode>POST /v1/text/chat</InlineCode> (unwraps the response{" "}
+      <InlineCode>data</InlineCode>) and <InlineCode>ai.text.stream(…)</InlineCode> for{" "}
+      <InlineCode>POST /v1/text/stream</InlineCode> (SSE events as an async iterable). See{" "}
+      <Link to="/docs/text-stream" className="text-white underline underline-offset-2 hover:text-[#ddd]">
+        Text Stream
+      </Link>
+      .
     </P>
     <Callout title="Dashboard stays in the browser">
       Create projects, manage billing, and issue API keys in the AInvoker dashboard. The SDK is

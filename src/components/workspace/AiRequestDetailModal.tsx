@@ -216,7 +216,6 @@ const AiRequestDetailModal = ({
                     : "—"}
                 </MetaItem>
                 <MetaItem label="Latency">{formatLatency(detail.latency)}</MetaItem>
-                <MetaItem label="Cost">{detail.requestCost ?? "—"}</MetaItem>
                 <MetaItem label="Time">{formatDate(detail.createdAt)}</MetaItem>
               </dl>
 

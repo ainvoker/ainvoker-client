@@ -19,7 +19,8 @@ const ai = new AInvoker({
 })
 
 const result = await ai.text.chat({
-  model: "openai/gpt-4o-mini",
+  provider: "openai",
+  model: "gpt-4o-mini",
   messages: [{ role: "user", content: "Summarize AInvoker in one sentence." }],
   temperature: 0.5,
   maxTokens: 128,
@@ -27,6 +28,14 @@ const result = await ai.text.chat({
 
 console.log(result.message.content)
 console.log(result.usage)`
+
+const streamExample = `for await (const event of ai.text.stream({
+  provider: "openai",
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Hello" }],
+})) {
+  if (event.type === "delta") process.stdout.write(event.content)
+}`
 
 const SdkNodejs = () => (
   <DocsArticle
@@ -53,6 +62,14 @@ const SdkNodejs = () => (
 
     <H2>Example</H2>
     <CodeBlock code={nodeExample} language="typescript" title="server.ts" />
+    <P>
+      Streaming uses the same params. See{" "}
+      <Link to="/docs/text-stream" className="text-white underline underline-offset-2 hover:text-[#ddd]">
+        Text Stream
+      </Link>
+      :
+    </P>
+    <CodeBlock code={streamExample} language="typescript" title="stream.ts" />
 
     <H2>Error handling</H2>
     <P>
@@ -70,7 +87,8 @@ const SdkNodejs = () => (
       <li>Create a project and API key in the dashboard.</li>
       <li>Store the key in your environment — never hard-code it.</li>
       <li>
-        Call <InlineCode>ai.text.chat</InlineCode> from your backend.
+        Call <InlineCode>ai.text.chat</InlineCode> or <InlineCode>ai.text.stream</InlineCode> from
+        your backend.
       </li>
       <li>
         Monitor monthly usage in the dashboard or via response headers. See{" "}

@@ -21,6 +21,7 @@ export const docsNav: DocsNavSection[] = [
     title: "API",
     items: [
       { slug: "text-chat", title: "Text Chat" },
+      { slug: "text-stream", title: "Text Stream" },
       { slug: "models", title: "Models" },
       { slug: "limits", title: "Limits" },
       { slug: "errors", title: "Errors" },

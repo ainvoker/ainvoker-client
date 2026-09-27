@@ -43,6 +43,7 @@ import GettingStarted from "./pages/docs/GettingStarted"
 import Authentication from "./pages/docs/Authentication"
 import ApiKeysDocs from "./pages/docs/ApiKeys"
 import TextChat from "./pages/docs/TextChat"
+import TextStream from "./pages/docs/TextStream"
 import ModelsDocs from "./pages/docs/Models"
 import Limits from "./pages/docs/Limits"
 import Errors from "./pages/docs/Errors"
@@ -77,6 +78,7 @@ function App() {
                     <Route path="authentication" element={<Authentication />} />
                     <Route path="api-keys" element={<ApiKeysDocs />} />
                     <Route path="text-chat" element={<TextChat />} />
+                    <Route path="text-stream" element={<TextStream />} />
                     <Route path="models" element={<ModelsDocs />} />
                     <Route path="limits" element={<Limits />} />
                     <Route path="errors" element={<Errors />} />

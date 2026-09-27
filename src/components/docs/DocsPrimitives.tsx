@@ -18,8 +18,10 @@ export const Callout = ({ title, children, variant = "info" }: CalloutProps) => 
   )
 }
 
-export const H2 = ({ children }: { children: React.ReactNode }) => (
-  <h2 className="scroll-mt-24 pt-4 text-xl font-semibold text-white">{children}</h2>
+export const H2 = ({ children, id }: { children: React.ReactNode; id?: string }) => (
+  <h2 id={id} className="scroll-mt-24 pt-4 text-xl font-semibold text-white">
+    {children}
+  </h2>
 )
 
 export const H3 = ({ children }: { children: React.ReactNode }) => (

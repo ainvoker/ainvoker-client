@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
-import { HiOutlineDocumentText } from "react-icons/hi2"
+import { HiArrowPath, HiOutlineDocumentText } from "react-icons/hi2"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import AiRequestDetailModal from "../../../components/workspace/AiRequestDetailModal"
 import Skeleton from "../../../components/common/Skeleton"
@@ -75,7 +75,9 @@ const Logs = () => {
   const [offset, setOffset] = useState(0)
   const [statusFilter, setStatusFilter] = useState<"" | AiRequestStatus>("")
   const [isLoading, setIsLoading] = useState(true)
+  const [isCheckingForNewLogs, setIsCheckingForNewLogs] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const latestLogId = useRef<string | null>(null)
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detail, setDetail] = useState<AiRequestDetail | null>(null)
@@ -110,6 +112,9 @@ const Logs = () => {
 
     setItems(data.items)
     setTotal(data.total)
+    if (offset === 0) {
+      latestLogId.current = data.items[0]?.id ?? null
+    }
     setIsLoading(false)
   }, [token, projectId, statusFilter, offset])
 
@@ -157,6 +162,41 @@ const Logs = () => {
     setOffset(0)
   }
 
+  const checkForNewLogs = async () => {
+    if (!token || !projectId) return
+
+    setIsCheckingForNewLogs(true)
+    setError(null)
+
+    try {
+      const [data, err] = await AiRequestService.list(token, projectId, {
+        status: statusFilter || undefined,
+        limit: 1,
+        offset: 0,
+      })
+
+      if (err || !data) {
+        setError(err ?? "Failed to check for new logs")
+        return
+      }
+
+      const newestLogId = data.items[0]?.id ?? null
+      const hasNewLogs =
+        newestLogId !== null && newestLogId !== latestLogId.current
+
+      if (!hasNewLogs) return
+
+      if (offset === 0) {
+        await loadLogs()
+      } else {
+        setIsLoading(true)
+        setOffset(0)
+      }
+    } finally {
+      setIsCheckingForNewLogs(false)
+    }
+  }
+
   const closeDetail = () => setSelectedId(null)
 
   const canPrev = offset > 0
@@ -175,22 +215,38 @@ const Logs = () => {
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
               Gateway invocations for this project, newest first.
             </p>
-            <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
-              <span className="text-neutral-500 dark:text-neutral-400">Status</span>
-              <select
-                value={statusFilter}
-                onChange={(event) =>
-                  handleStatusChange(event.target.value as "" | AiRequestStatus)
-                }
-                className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm text-accent outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-neutral-500"
+            <div className="flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+                <span className="text-neutral-500 dark:text-neutral-400">Status</span>
+                <select
+                  value={statusFilter}
+                  onChange={(event) =>
+                    handleStatusChange(event.target.value as "" | AiRequestStatus)
+                  }
+                  className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm text-accent outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-neutral-500"
+                >
+                  {STATUS_OPTIONS.map((option) => (
+                    <option key={option.label} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                onClick={() => void checkForNewLogs()}
+                disabled={isLoading || isCheckingForNewLogs}
+                aria-label="Check for new logs"
+                title="Check for new logs"
+                className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
               >
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option.label} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <HiArrowPath
+                  className={`size-4 ${isCheckingForNewLogs ? "animate-spin" : ""}`}
+                  aria-hidden
+                />
+                Refresh
+              </button>
+            </div>
           </div>
 
           {error ? (

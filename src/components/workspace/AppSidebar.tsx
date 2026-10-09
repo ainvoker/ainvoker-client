@@ -1,5 +1,16 @@
 import { NavLink, useMatch } from "react-router-dom"
-import { getProjectNav, workspaceNav } from "../../utils/navigation"
+import { useQueryClient } from "@tanstack/react-query"
+import { useAuth } from "../../contexts/AuthContext"
+import { useWorkspace } from "../../contexts/WorkspaceContext"
+import { getProjectNav, routes, workspaceNav } from "../../utils/navigation"
+import {
+  organizationUsageQuery,
+  projectAnalyticsQuery,
+  projectApiKeysQuery,
+  projectLogsQuery,
+  projectModelsQuery,
+  projectUsageQuery,
+} from "../../utils/queries"
 import Logo from "../../assets/logo.svg"
 import ProfileMenu from "./ProfileMenu"
 import ProjectSwitcher from "./ProjectSwitcher"
@@ -25,6 +36,37 @@ const AppSidebar = ({ open, onClose, onOpen }: AppSidebarProps) => {
   const projectId = projectMatch?.params.projectId ?? ""
   const projectItems = projectId ? getProjectNav(projectId) : []
   const navItems = workspaceNav
+  const { token } = useAuth()
+  const { activeOrganizationId } = useWorkspace()
+  const queryClient = useQueryClient()
+
+  const prefetchWorkspaceRoute = (path: string) => {
+    if (path !== routes.dashboard || !token || !activeOrganizationId) return
+    void queryClient.prefetchQuery(
+      organizationUsageQuery(token, activeOrganizationId),
+    )
+  }
+
+  const prefetchProjectRoute = (path: string) => {
+    if (!token || !projectId) return
+    const prefetchers: Record<string, () => Promise<void>> = {
+      [routes.projectOverview(projectId)]: () =>
+        queryClient.prefetchQuery(projectUsageQuery(token, projectId)),
+      [routes.projectApiKeys(projectId)]: () =>
+        queryClient.prefetchQuery(projectApiKeysQuery(token, projectId)),
+      [routes.projectModels(projectId)]: () =>
+        queryClient.prefetchQuery(projectModelsQuery(token, projectId)),
+      [routes.projectAnalytics(projectId)]: () =>
+        queryClient.prefetchQuery(
+          projectAnalyticsQuery(token, projectId, "billing_month"),
+        ),
+      [routes.projectLogs(projectId)]: () =>
+        queryClient.prefetchQuery(
+          projectLogsQuery(token, projectId, undefined, 0),
+        ),
+    }
+    void prefetchers[path]?.()
+  }
 
   return (
     <>
@@ -93,6 +135,8 @@ const AppSidebar = ({ open, onClose, onOpen }: AppSidebarProps) => {
                 to={path}
                 end={end}
                 onClick={onClose}
+                onMouseEnter={() => prefetchWorkspaceRoute(path)}
+                onFocus={() => prefetchWorkspaceRoute(path)}
                 className={linkClass}
               >
                 <Icon className="size-4 shrink-0 opacity-70" aria-hidden />
@@ -110,6 +154,8 @@ const AppSidebar = ({ open, onClose, onOpen }: AppSidebarProps) => {
                   to={path}
                   end={end}
                   onClick={onClose}
+                  onMouseEnter={() => prefetchProjectRoute(path)}
+                  onFocus={() => prefetchProjectRoute(path)}
                   className={linkClass}
                 >
                   <Icon className="size-4 shrink-0 opacity-70" aria-hidden />

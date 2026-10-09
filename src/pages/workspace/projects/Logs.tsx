@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
 import { HiArrowPath, HiOutlineDocumentText } from "react-icons/hi2"
+import { useParams } from "react-router-dom"
+import { useQuery } from "@tanstack/react-query"
+import { HiOutlineDocumentText } from "react-icons/hi2"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import AiRequestDetailModal from "../../../components/workspace/AiRequestDetailModal"
 import Skeleton from "../../../components/common/Skeleton"
 import { useAuth } from "../../../contexts/AuthContext"
-import AiRequestService, {
-  type AiRequestDetail,
-  type AiRequestStatus,
-  type AiRequestSummary,
-} from "../../../services/AiRequestService"
-
-const PAGE_SIZE = 50
+import type { AiRequestStatus } from "../../../services/AiRequestService"
+import {
+  LOGS_PAGE_SIZE,
+  projectLogDetailQuery,
+  projectLogsQuery,
+} from "../../../utils/queries"
 
 const STATUS_OPTIONS: { label: string; value: "" | AiRequestStatus }[] = [
   { label: "All", value: "" },
@@ -70,8 +72,6 @@ const Logs = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const { token } = useAuth()
 
-  const [items, setItems] = useState<AiRequestSummary[]>([])
-  const [total, setTotal] = useState(0)
   const [offset, setOffset] = useState(0)
   const [statusFilter, setStatusFilter] = useState<"" | AiRequestStatus>("")
   const [isLoading, setIsLoading] = useState(true)
@@ -80,82 +80,36 @@ const Logs = () => {
   const latestLogId = useRef<string | null>(null)
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [detail, setDetail] = useState<AiRequestDetail | null>(null)
-  const [detailLoading, setDetailLoading] = useState(false)
-  const [detailError, setDetailError] = useState<string | null>(null)
 
-  const loadLogs = useCallback(async () => {
-    if (!token || !projectId) {
-      setItems([])
-      setTotal(0)
-      setIsLoading(false)
-      setError(!projectId ? "Missing project" : "Not authenticated")
-      return
-    }
+  const missingContext = !projectId
+    ? "Missing project"
+    : !token
+      ? "Not authenticated"
+      : null
 
-    setIsLoading(true)
-    setError(null)
-
-    const [data, err] = await AiRequestService.list(token, projectId, {
-      status: statusFilter || undefined,
-      limit: PAGE_SIZE,
+  const logsQuery = useQuery({
+    ...projectLogsQuery(
+      token ?? "",
+      projectId ?? "",
+      statusFilter || undefined,
       offset,
-    })
+    ),
+    enabled: !missingContext,
+    placeholderData: (previous) =>
+      previous?.items[0]?.projectId === projectId ? previous : undefined,
+  })  
+  const items = logsQuery.data?.items ?? []
+  const total = logsQuery.data?.total ?? 0
+  const isLoading = logsQuery.isFetching
+  const error = missingContext ?? logsQuery.error?.message ?? null
 
-    if (err || !data) {
-      setItems([])
-      setTotal(0)
-      setError(err ?? "Failed to load logs")
-      setIsLoading(false)
-      return
-    }
-
-    setItems(data.items)
-    setTotal(data.total)
-    if (offset === 0) {
-      latestLogId.current = data.items[0]?.id ?? null
-    }
-    setIsLoading(false)
-  }, [token, projectId, statusFilter, offset])
-
-  useEffect(() => {
-    void loadLogs()
-  }, [loadLogs])
-
-  useEffect(() => {
-    if (!selectedId || !token || !projectId) {
-      setDetail(null)
-      setDetailError(null)
-      setDetailLoading(false)
-      return
-    }
-
-    let cancelled = false
-
-    const loadDetail = async () => {
-      setDetailLoading(true)
-      setDetailError(null)
-      setDetail(null)
-
-      const [data, err] = await AiRequestService.get(token, projectId, selectedId)
-      if (cancelled) return
-
-      if (err || !data) {
-        setDetail(null)
-        setDetailError(err ?? "Failed to load request detail")
-        setDetailLoading(false)
-        return
-      }
-
-      setDetail(data)
-      setDetailLoading(false)
-    }
-
-    void loadDetail()
-    return () => {
-      cancelled = true
-    }
-  }, [selectedId, token, projectId])
+  const detailQuery = useQuery({
+    ...projectLogDetailQuery(token ?? "", projectId ?? "", selectedId ?? ""),
+    enabled: Boolean(selectedId) && !missingContext,
+  })
+  const detail = detailQuery.data ?? null
+  const detailLoading = detailQuery.isLoading
+  const detailError = detailQuery.error?.message ?? null
 
   const handleStatusChange = (value: "" | AiRequestStatus) => {
     setStatusFilter(value)
@@ -200,7 +154,7 @@ const Logs = () => {
   const closeDetail = () => setSelectedId(null)
 
   const canPrev = offset > 0
-  const canNext = offset + PAGE_SIZE < total
+  const canNext = offset + LOGS_PAGE_SIZE < total
   const rangeStart = total === 0 ? 0 : offset + 1
   const rangeEnd = Math.min(offset + items.length, total)
 
@@ -353,7 +307,7 @@ const Logs = () => {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setOffset((prev) => Math.max(0, prev - PAGE_SIZE))}
+                    onClick={() => setOffset((prev) => Math.max(0, prev - LOGS_PAGE_SIZE))}
                     disabled={!canPrev || isLoading}
                     className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
                   >
@@ -361,7 +315,7 @@ const Logs = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setOffset((prev) => prev + PAGE_SIZE)}
+                    onClick={() => setOffset((prev) => prev + LOGS_PAGE_SIZE)}
                     disabled={!canNext || isLoading}
                     className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
                   >

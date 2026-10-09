@@ -1,0 +1,35 @@
+
+name: Test VPS SSH
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-ssh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/ainvoker_ci
+          chmod 600 ~/.ssh/ainvoker_ci
+
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Test VPS connection
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          ssh -i ~/.ssh/ainvoker_ci \
+            -o BatchMode=yes \
+            "$VPS_USER@$VPS_HOST" \
+            'whoami && hostname && echo "SSH connection successful"'

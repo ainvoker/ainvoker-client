@@ -7,7 +7,6 @@ import {
   HiOutlineDocumentText,
   HiOutlineHome,
   HiOutlineKey,
-  HiOutlineBolt,
   HiOutlineFolder,
   HiOutlineUsers,
   HiOutlineSquares2X2,
@@ -32,7 +31,6 @@ export const routes = {
   projectOverview: (projectId: string) => `/projects/${projectId}`,
   projectApiKeys: (projectId: string) => `/projects/${projectId}/api-keys`,
   projectModels: (projectId: string) => `/projects/${projectId}/models`,
-  projectActions: (projectId: string) => `/projects/${projectId}/actions`,
   projectAnalytics: (projectId: string) => `/projects/${projectId}/analytics`,
   projectLogs: (projectId: string) => `/projects/${projectId}/logs`,
   projectSettings: (projectId: string) => `/projects/${projectId}/settings`,
@@ -130,7 +128,6 @@ export const getProjectNav = (projectId: string): NavLinkItem[] => [
   },
   { label: "API Keys", path: routes.projectApiKeys(projectId), icon: HiOutlineKey },
   { label: "Models", path: routes.projectModels(projectId), icon: HiOutlineCube },
-  { label: "Actions", path: routes.projectActions(projectId), icon: HiOutlineBolt },
   {
     label: "Analytics",
     path: routes.projectAnalytics(projectId),

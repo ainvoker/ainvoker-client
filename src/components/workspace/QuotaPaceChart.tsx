@@ -213,7 +213,8 @@ const QuotaPaceChart = ({
     const all: ChartPoint[] = []
     let cumulative = 0
 
-    for (let i = 1; i <= dim; i++) {
+    // Rolling ranges can span more days than the current month has.
+    for (let i = 1; i <= Math.max(dim, daily.length); i++) {
       const day = daily[i - 1]
       const date =
         day?.date ??

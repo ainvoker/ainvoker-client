@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react"
 import { useMatch, useNavigate } from "react-router-dom"
+import { useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "./AuthContext"
 import type { ApiErrorInfo } from "../services/Service"
 import BillingService, {
@@ -25,6 +26,7 @@ import ProjectService, {
   type UpdateProjectInput,
 } from "../services/ProjectService"
 import { routes } from "../utils/navigation"
+import { queryKeys } from "../utils/queries"
 import {
   pickDefaultOrganizationId,
   readInitialOrganizationId,
@@ -123,6 +125,7 @@ export const useWorkspace = () => useContext(WorkspaceContext)
 export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const { token, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const projectMatch = useMatch({ path: "/projects/:projectId", end: false })
 
   const [organizations, setOrganizations] = useState<OrganizationListItem[]>([])
@@ -275,10 +278,11 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         if (prev.some((item) => item.id === project.id)) return prev
         return [...prev, project]
       })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.organizations })
 
       return [project, undefined]
     },
-    [token, activeOrganizationId],
+    [token, activeOrganizationId, queryClient],
   )
 
   const updateProject = useCallback(
@@ -298,10 +302,14 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       setProjects((prev) =>
         prev.map((item) => (item.id === project.id ? project : item)),
       )
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.project(project.id),
+      })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.organizations })
 
       return [project, undefined]
     },
-    [token],
+    [token, queryClient],
   )
 
   const deleteProject = useCallback(
@@ -316,9 +324,11 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       }
 
       setProjects((prev) => prev.filter((item) => item.id !== projectId))
+      queryClient.removeQueries({ queryKey: queryKeys.project(projectId) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.organizations })
       return [true, undefined]
     },
-    [token],
+    [token, queryClient],
   )
 
   const createWorkspace = useCallback(
@@ -430,11 +440,12 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       setSubscription(null)
       setError(null)
       setIsLoading(false)
+      queryClient.clear()
       return
     }
 
     void refresh()
-  }, [authLoading, token, refresh])
+  }, [authLoading, token, refresh, queryClient])
 
   useEffect(() => {
     void refreshProjects()

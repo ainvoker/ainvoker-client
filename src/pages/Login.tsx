@@ -1,7 +1,7 @@
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IoArrowBackOutline } from 'react-icons/io5'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { signinSchema, type SigninFormValues } from '../types/common/signinSchema'
 import OAuthProviders from '../components/common/OAuthProviders'
@@ -12,9 +12,16 @@ import { useAuth } from '../contexts/AuthContext'
 import Button from '../components/common/Button'
 import AuthLayout from '../layouts/AuthLayout'
 import { FaCheck } from 'react-icons/fa6'
+import {
+  resolveInviteNext,
+  signupPathWithNext,
+  verifyEmailPathWithNext,
+} from '../utils/inviteRedirect'
 
 const Login = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const inviteNext = resolveInviteNext(searchParams.get("next"))
   const [rememberAccount, setRememberAccount] = useState<boolean>(false)
   const { refresh, setAuth } = useAuth()
 
@@ -47,19 +54,19 @@ const Login = () => {
           name: "",
         })
         await AuthService.resendVerifyEmailOTP({ email })
+        navigate(verifyEmailPathWithNext(inviteNext), { replace: true })
       }
 
       return
     }
 
-
-    setAuth(data?.user)
+    reset()
+    await refresh()
   }
 
   useEffect(() => {
     if (isSubmitSuccessful) {
       reset()
-      refresh()
     }
   }, [isSubmitSuccessful, reset])
 
@@ -131,7 +138,7 @@ const Login = () => {
         </form>
         <p className='text-xs text-center py-2'>
           Don't have an account?{" "}
-          <Link to="/signup" className='font-semibold hover:underline'>Sign up</Link>
+          <Link to={signupPathWithNext(inviteNext)} className='font-semibold hover:underline'>Sign up</Link>
         </p>
     </AuthLayout>
   )

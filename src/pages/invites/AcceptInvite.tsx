@@ -6,6 +6,7 @@ import { useAuth } from "../../contexts/AuthContext"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
 import MemberService, { type InvitePreview } from "../../services/MemberService"
 import { routes } from "../../utils/navigation"
+import { clearPersistedInviteNext } from "../../utils/inviteRedirect"
 import { writeStoredOrganizationId } from "../../utils/workspace"
 
 const AcceptInvite = () => {
@@ -51,6 +52,10 @@ const AcceptInvite = () => {
     }
   }, [inviteToken, token])
 
+  const canAccept =
+    preview?.status === "PENDING" &&
+    new Date(preview.expiresAt).getTime() > Date.now()
+
   const handleAccept = async () => {
     if (!token || !inviteToken) return
 
@@ -64,14 +69,11 @@ const AcceptInvite = () => {
       return
     }
 
+    clearPersistedInviteNext()
     writeStoredOrganizationId(result.organization.id)
     await refresh()
     navigate(routes.settingsTeam, { replace: true })
   }
-
-  const canAccept =
-    preview?.status === "PENDING" &&
-    new Date(preview.expiresAt).getTime() > Date.now()
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-[#f4f4f5] px-4 py-12 dark:bg-neutral-950">

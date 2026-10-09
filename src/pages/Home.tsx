@@ -1,4 +1,9 @@
 import { Navigate } from "react-router-dom"
+import {
+  clearPersistedInviteNext,
+  readPersistedInviteNext,
+  verifyEmailPathWithNext,
+} from "../utils/inviteRedirect"
 import PageLoader from "../components/common/PageLoader"
 import { useAuth } from "../contexts/AuthContext"
 import Landing from "./Landing"
@@ -15,7 +20,14 @@ const Home = () => {
   if (!user) return <Landing />
 
   if (!user.emailVerified) {
-    return <Navigate to="/verify-email" replace />
+    const pendingInvite = readPersistedInviteNext()
+    return <Navigate to={verifyEmailPathWithNext(pendingInvite)} replace />
+  }
+
+  const pendingInvite = readPersistedInviteNext()
+  if (pendingInvite) {
+    clearPersistedInviteNext()
+    return <Navigate to={pendingInvite} replace />
   }
 
   return (

@@ -96,6 +96,44 @@ export type ProjectUsage = {
     recentRequests: AiRequestSummary[];
 };
 
+export type AnalyticsRange = "billing_month" | "7d" | "30d";
+
+export type ApiKeyUsageRow = {
+    apiKeyId: string;
+    keyName: string;
+    keyPrefix: string;
+    requestsUsed: number;
+    tokensUsed: number;
+};
+
+export type ProjectAnalytics = {
+    range: AnalyticsRange;
+    project: {
+        id: string;
+        organizationId: string;
+        name: string;
+    };
+    plan: UsagePlanSnapshot | null;
+    period: UsagePeriod & {
+        inputTokens: number;
+        outputTokens: number;
+        /** Decimal string in USD. */
+        totalCost: string;
+    };
+    latency: {
+        avg: number | null;
+        p50: number | null;
+        p95: number | null;
+    };
+    organizationPeriod: UsagePeriod;
+    byModel: OrgUsageByModel[];
+    byApiKey: ApiKeyUsageRow[];
+    daily: UsageDailyPoint[];
+    dailyByModel: UsageDailySegmentPoint[];
+    dailyByApiKey: UsageDailySegmentPoint[];
+    recentRequests: AiRequestSummary[];
+};
+
 class UsageService extends Service {
     async getOrganizationUsage(
         token: string,
@@ -126,6 +164,26 @@ class UsageService extends Service {
 
         return this.request<ProjectUsage>(
             `${API_URL}/api/v1/projects/${projectId}/usage`,
+            {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            },
+        );
+    }
+
+    async getProjectAnalytics(
+        token: string,
+        projectId: string,
+        range: AnalyticsRange,
+    ): Promise<[ProjectAnalytics | null, string | undefined]> {
+        if (!API_URL) {
+            return [null, "VITE_API_URL is not configured"];
+        }
+
+        return this.request<ProjectAnalytics>(
+            `${API_URL}/api/v1/projects/${projectId}/analytics?range=${range}`,
             {
                 method: "GET",
                 headers: {

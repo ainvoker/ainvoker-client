@@ -80,8 +80,8 @@ type RouteErrorBoundaryProps = {
 
 /**
  * Route-level boundary. Resets when `location.pathname` changes so in-app
- * navigation leaves a crashed page. Suspense uses the existing page loader
- * if a child suspends; routes are still eager, so this only reserves a fallback.
+ * navigation leaves a crashed page. Suspense shows the page loader while a
+ * lazy route chunk loads.
  */
 export function RouteErrorBoundary({
   children,

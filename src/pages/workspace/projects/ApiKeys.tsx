@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react"
+import { useState } from "react"
 import { useParams } from "react-router-dom"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { HiOutlineKey, HiOutlinePlus } from "react-icons/hi2"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import CreateApiKeyModal from "../../../components/workspace/CreateApiKeyModal"
@@ -13,6 +14,7 @@ import ApiKeyService, {
   type CreateApiKeyInput,
   type CreatedApiKey,
 } from "../../../services/ApiKeyService"
+import { projectApiKeysQuery, queryKeys } from "../../../utils/queries"
 
 const formatDate = (value: string | null) => {
   if (!value) return "—"
@@ -49,9 +51,7 @@ const ApiKeys = () => {
   const { token } = useAuth()
   const { canMutateResources } = useWorkspace()
 
-  const [keys, setKeys] = useState<ApiKey[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
   const [actionError, setActionError] = useState<string | null>(null)
   const [busyKeyId, setBusyKeyId] = useState<string | null>(null)
 
@@ -59,32 +59,28 @@ const ApiKeys = () => {
   const [revealedKey, setRevealedKey] = useState<CreatedApiKey | null>(null)
   const createDisabled = !token || !projectId || !canMutateResources
 
-  const loadKeys = useCallback(async () => {
-    if (!token || !projectId) {
-      setKeys([])
-      setIsLoading(false)
-      setError(!projectId ? "Missing project" : "Not authenticated")
-      return
-    }
+  const keysQuery = useQuery({
+    ...projectApiKeysQuery(token ?? "", projectId ?? ""),
+    enabled: Boolean(token && projectId),
+  })
+  const keys = keysQuery.data ?? []
+  const isLoading = keysQuery.isLoading
+  const error = !projectId
+    ? "Missing project"
+    : !token
+      ? "Not authenticated"
+      : (keysQuery.error?.message ?? null)
 
-    setIsLoading(true)
-    setError(null)
-
-    const [data, err] = await ApiKeyService.list(token, projectId)
-    if (err || !data) {
-      setKeys([])
-      setError(err ?? "Failed to load API keys")
-      setIsLoading(false)
-      return
-    }
-
-    setKeys(data)
-    setIsLoading(false)
-  }, [token, projectId])
-
-  useEffect(() => {
-    void loadKeys()
-  }, [loadKeys])
+  const setKeys = (update: (prev: ApiKey[]) => ApiKey[]) => {
+    if (!projectId) return
+    queryClient.setQueryData<ApiKey[]>(
+      queryKeys.projectApiKeys(projectId),
+      (prev) => update(prev ?? []),
+    )
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.projectUsage(projectId),
+    })
+  }
 
   const handleCreate = async (
     input: CreateApiKeyInput,

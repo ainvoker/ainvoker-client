@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { Link } from "react-router-dom"
+import { useQuery } from "@tanstack/react-query"
 import { HiOutlineFolder } from "react-icons/hi2"
 import Skeleton from "../../components/common/Skeleton"
 import WorkspacePage from "../../components/workspace/WorkspacePage"
@@ -12,7 +13,7 @@ import ShareBars from "../../components/workspace/ShareBars"
 import RecentRequestsTable from "../../components/workspace/RecentRequestsTable"
 import { useAuth } from "../../contexts/AuthContext"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
-import UsageService, { type OrganizationUsage } from "../../services/UsageService"
+import { organizationUsageQuery } from "../../utils/queries"
 import {
   formatCompactNumber,
   formatTokens,
@@ -55,44 +56,21 @@ const Dashboard = () => {
     isLoading: workspaceLoading,
   } = useWorkspace()
 
-  const [usage, setUsage] = useState<OrganizationUsage | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const loadUsage = useCallback(async () => {
-    if (!token || !activeOrganizationId) {
-      setUsage(null)
-      setIsLoading(false)
-      setError(!activeOrganizationId ? null : "Not authenticated")
-      return
-    }
-
-    setIsLoading(true)
-    setError(null)
-
-    const [data, err] = await UsageService.getOrganizationUsage(
-      token,
-      activeOrganizationId,
-    )
-    if (err || !data) {
-      setUsage(null)
-      setError(err ?? "Failed to load dashboard")
-      setIsLoading(false)
-      return
-    }
-
-    setUsage(data)
-    setIsLoading(false)
-  }, [token, activeOrganizationId])
-
-  useEffect(() => {
-    void loadUsage()
-  }, [loadUsage])
+  const usageQuery = useQuery({
+    ...organizationUsageQuery(token ?? "", activeOrganizationId ?? ""),
+    enabled: Boolean(token && activeOrganizationId),
+  })
+  const usage = usageQuery.data
+  const error = !activeOrganizationId
+    ? null
+    : !token
+      ? "Not authenticated"
+      : (usageQuery.error?.message ?? null)
 
   const workspaceName = activeOrganization?.name ?? "this workspace"
-  const busy = workspaceLoading || isLoading
+  const busy = workspaceLoading || usageQuery.isLoading
   const period = usage?.period
-  const daily = usage?.daily ?? []
+  const daily = useMemo(() => usage?.daily ?? [], [usage?.daily])
   const rate = period
     ? successRatePercent(period.successfulRequests, period.failedRequests)
     : null

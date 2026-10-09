@@ -5,17 +5,12 @@ import AppSidebar from "../components/workspace/AppSidebar"
 import BillingRequiredBanner from "../components/workspace/BillingRequiredBanner"
 import { useTheme } from "../contexts/ThemeContext"
 
-type WorkspaceLayoutProps = {
-  children?: React.ReactNode
-}
-
 /**
  * Authenticated app shell.
  * Sidebar always shows workspace nav; project nav appends below on project routes.
- * Supports children (Home `/`) or nested Outlet.
  * Dark mode is scoped here so marketing/auth pages stay light.
  */
-const WorkspaceLayout = ({ children }: WorkspaceLayoutProps) => {
+const WorkspaceLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
@@ -44,7 +39,9 @@ const WorkspaceLayout = ({ children }: WorkspaceLayoutProps) => {
           }}
         />
         <BillingRequiredBanner />
-        <RouteErrorBoundary>{children ?? <Outlet />}</RouteErrorBoundary>
+        <RouteErrorBoundary>
+          <Outlet />
+        </RouteErrorBoundary>
       </div>
     </div>
   )

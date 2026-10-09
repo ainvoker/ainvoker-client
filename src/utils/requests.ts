@@ -45,6 +45,19 @@ export const formatTokens = (value: number | null | undefined) => {
 
 export const formatCompactNumber = (value: number) => value.toLocaleString()
 
+/** USD amount from a decimal string; keeps sub-cent precision for tiny totals. */
+export const formatCost = (value: string | null | undefined) => {
+  if (value == null) return "—"
+  const amount = Number(value)
+  if (!Number.isFinite(amount)) return "—"
+  return amount.toLocaleString(undefined, {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: amount > 0 && amount < 1 ? 4 : 2,
+  })
+}
+
 export const successRatePercent = (
   successful: number,
   failed: number,

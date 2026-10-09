@@ -1,3 +1,4 @@
+import { lazy } from "react"
 import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom"
 
 import { RouteErrorBoundary } from "./components/common/ErrorBoundary"
@@ -6,12 +7,12 @@ import { ThemeProvider } from "./contexts/ThemeContext"
 import { WorkspaceProvider } from "./contexts/WorkspaceContext"
 import GuestRoutes from "./layouts/GuestRoutes"
 import ProtectedRoutes from "./layouts/ProtectedRoutes"
-import WorkspaceLayout from "./layouts/WorkspaceLayout"
+import WorkspaceRoutes from "./layouts/WorkspaceRoutes"
 import ProjectLayout from "./layouts/ProjectLayout"
 import SettingsLayout from "./layouts/SettingsLayout"
 import DocsLayout from "./layouts/DocsLayout"
 import LegalLayout from "./layouts/LegalLayout"
-import Home from "./pages/Home"
+import Dashboard from "./pages/workspace/Dashboard"
 import Signup from "./pages/Signup"
 import VerifyEmail from "./pages/VerifyEmail"
 import AuthRoutes from "./layouts/AuthRoutes"
@@ -23,7 +24,6 @@ import VerifyResetPassword from "./pages/VerifyResetPassword"
 import ResetPassword from "./pages/ResetPassword"
 import Projects from "./pages/workspace/Projects"
 import Billing from "./pages/workspace/Billing"
-import BillingCheckout from "./pages/workspace/BillingCheckout"
 import Team from "./pages/workspace/Team"
 import AcceptInvite from "./pages/invites/AcceptInvite"
 import SettingsIndexRedirect from "./pages/workspace/settings/SettingsIndexRedirect"
@@ -35,21 +35,22 @@ import SettingsSecurity from "./pages/workspace/settings/Security"
 import Overview from "./pages/workspace/projects/Overview"
 import ApiKeys from "./pages/workspace/projects/ApiKeys"
 import Models from "./pages/workspace/projects/Models"
-import Actions from "./pages/workspace/projects/Actions"
 import Analytics from "./pages/workspace/projects/Analytics"
 import Logs from "./pages/workspace/projects/Logs"
 import ProjectSettings from "./pages/workspace/projects/Settings"
-import GettingStarted from "./pages/docs/GettingStarted"
-import Authentication from "./pages/docs/Authentication"
-import ApiKeysDocs from "./pages/docs/ApiKeys"
-import TextChat from "./pages/docs/TextChat"
-import TextStream from "./pages/docs/TextStream"
-import ModelsDocs from "./pages/docs/Models"
-import Limits from "./pages/docs/Limits"
-import Errors from "./pages/docs/Errors"
-import SdkOverview from "./pages/docs/SdkOverview"
-import SdkNodejs from "./pages/docs/SdkNodejs"
-import SdkBrowser from "./pages/docs/SdkBrowser"
+
+const BillingCheckout = lazy(() => import("./pages/workspace/BillingCheckout"))
+const GettingStarted = lazy(() => import("./pages/docs/GettingStarted"))
+const Authentication = lazy(() => import("./pages/docs/Authentication"))
+const ApiKeysDocs = lazy(() => import("./pages/docs/ApiKeys"))
+const TextChat = lazy(() => import("./pages/docs/TextChat"))
+const TextStream = lazy(() => import("./pages/docs/TextStream"))
+const ModelsDocs = lazy(() => import("./pages/docs/Models"))
+const Limits = lazy(() => import("./pages/docs/Limits"))
+const Errors = lazy(() => import("./pages/docs/Errors"))
+const SdkOverview = lazy(() => import("./pages/docs/SdkOverview"))
+const SdkNodejs = lazy(() => import("./pages/docs/SdkNodejs"))
+const SdkBrowser = lazy(() => import("./pages/docs/SdkBrowser"))
 
 function App() {
   return (
@@ -65,7 +66,6 @@ function App() {
             <RouteErrorBoundary fullScreen>
               <WorkspaceProvider>
                 <Routes>
-                  <Route index element={<Home />} />
                   <Route element={<LegalLayout />}>
                     <Route path="/terms" element={<Terms />} />
                     <Route path="/privacy" element={<Privacy />} />
@@ -101,34 +101,36 @@ function App() {
 
                   <Route path="/" element={<ProtectedRoutes />}>
                     <Route path="invites/accept" element={<AcceptInvite />} />
-                    <Route element={<WorkspaceLayout />}>
-                      <Route path="projects" element={<Projects />} />
-                      <Route path="projects/:projectId" element={<ProjectLayout />}>
-                        <Route index element={<Overview />} />
-                        <Route path="api-keys" element={<ApiKeys />} />
-                        <Route path="models" element={<Models />} />
-                        <Route path="actions" element={<Actions />} />
-                        <Route path="analytics" element={<Analytics />} />
-                        <Route path="logs" element={<Logs />} />
-                        <Route path="settings" element={<ProjectSettings />} />
-                      </Route>
+                  </Route>
 
-                      <Route path="billing" element={<Navigate to="/settings/billing" replace />} />
-                      <Route path="billing/checkout" element={<BillingCheckoutRedirect />} />
-                      <Route path="team" element={<Navigate to="/settings/team" replace />} />
+                  <Route path="/" element={<WorkspaceRoutes />}>
+                    <Route index element={<Dashboard />} />
+                    <Route path="projects" element={<Projects />} />
+                    <Route path="projects/:projectId" element={<ProjectLayout />}>
+                      <Route index element={<Overview />} />
+                      <Route path="api-keys" element={<ApiKeys />} />
+                      <Route path="models" element={<Models />} />
+                      <Route path="actions" element={<Navigate to="../analytics" replace />} />
+                      <Route path="analytics" element={<Analytics />} />
+                      <Route path="logs" element={<Logs />} />
+                      <Route path="settings" element={<ProjectSettings />} />
+                    </Route>
 
-                      <Route path="settings">
-                        <Route element={<SettingsLayout />}>
-                          <Route index element={<SettingsIndexRedirect />} />
-                          <Route path="general" element={<SettingsGeneral />} />
-                          <Route path="team" element={<Team />} />
-                          <Route path="billing" element={<Billing />} />
-                          <Route path="profile" element={<SettingsProfile />} />
-                          <Route path="appearance" element={<SettingsAppearance />} />
-                          <Route path="security" element={<SettingsSecurity />} />
-                        </Route>
-                        <Route path="billing/checkout" element={<BillingCheckout />} />
+                    <Route path="billing" element={<Navigate to="/settings/billing" replace />} />
+                    <Route path="billing/checkout" element={<BillingCheckoutRedirect />} />
+                    <Route path="team" element={<Navigate to="/settings/team" replace />} />
+
+                    <Route path="settings">
+                      <Route element={<SettingsLayout />}>
+                        <Route index element={<SettingsIndexRedirect />} />
+                        <Route path="general" element={<SettingsGeneral />} />
+                        <Route path="team" element={<Team />} />
+                        <Route path="billing" element={<Billing />} />
+                        <Route path="profile" element={<SettingsProfile />} />
+                        <Route path="appearance" element={<SettingsAppearance />} />
+                        <Route path="security" element={<SettingsSecurity />} />
                       </Route>
+                      <Route path="billing/checkout" element={<BillingCheckout />} />
                     </Route>
                   </Route>
 

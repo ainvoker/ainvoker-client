@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { HiOutlineCpuChip, HiOutlineMagnifyingGlass } from "react-icons/hi2"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import Skeleton from "../../../components/common/Skeleton"
@@ -8,6 +9,7 @@ import { useWorkspace } from "../../../contexts/WorkspaceContext"
 import ProjectModelService, {
   type ProjectModel,
 } from "../../../services/ProjectModelService"
+import { projectModelsQuery, queryKeys } from "../../../utils/queries"
 
 const formatContextWindow = (value: number) => value.toLocaleString()
 
@@ -18,39 +20,30 @@ const Models = () => {
 
   const canToggle = role === "owner" || role === "admin"
 
-  const [models, setModels] = useState<ProjectModel[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
   const [actionError, setActionError] = useState<string | null>(null)
   const [busyModelId, setBusyModelId] = useState<number | null>(null)
   const [search, setSearch] = useState("")
 
-  const loadModels = useCallback(async () => {
-    if (!token || !projectId) {
-      setModels([])
-      setIsLoading(false)
-      setError(!projectId ? "Missing project" : "Not authenticated")
-      return
-    }
+  const modelsQuery = useQuery({
+    ...projectModelsQuery(token ?? "", projectId ?? ""),
+    enabled: Boolean(token && projectId),
+  })
+  const models = useMemo(() => modelsQuery.data ?? [], [modelsQuery.data])
+  const isLoading = modelsQuery.isLoading
+  const error = !projectId
+    ? "Missing project"
+    : !token
+      ? "Not authenticated"
+      : (modelsQuery.error?.message ?? null)
 
-    setIsLoading(true)
-    setError(null)
-
-    const [data, err] = await ProjectModelService.list(token, projectId)
-    if (err || !data) {
-      setModels([])
-      setError(err ?? "Failed to load models")
-      setIsLoading(false)
-      return
-    }
-
-    setModels(data)
-    setIsLoading(false)
-  }, [token, projectId])
-
-  useEffect(() => {
-    void loadModels()
-  }, [loadModels])
+  const setModels = (update: (prev: ProjectModel[]) => ProjectModel[]) => {
+    if (!projectId) return
+    queryClient.setQueryData<ProjectModel[]>(
+      queryKeys.projectModels(projectId),
+      (prev) => update(prev ?? []),
+    )
+  }
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()

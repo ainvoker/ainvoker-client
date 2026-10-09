@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { Link, useParams } from "react-router-dom"
+import { useQuery } from "@tanstack/react-query"
 import {
   HiOutlineCog6Tooth,
   HiOutlineDocumentText,
@@ -15,7 +16,7 @@ import RecentRequestsTable from "../../../components/workspace/RecentRequestsTab
 import Skeleton from "../../../components/common/Skeleton"
 import { useAuth } from "../../../contexts/AuthContext"
 import { useWorkspace } from "../../../contexts/WorkspaceContext"
-import UsageService, { type ProjectUsage } from "../../../services/UsageService"
+import { projectUsageQuery } from "../../../utils/queries"
 import {
   formatCompactNumber,
   formatLatency,
@@ -76,36 +77,17 @@ const Overview = () => {
     [projects, projectId],
   )
 
-  const [usage, setUsage] = useState<ProjectUsage | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const loadUsage = useCallback(async () => {
-    if (!token || !projectId) {
-      setUsage(null)
-      setIsLoading(false)
-      setError(!projectId ? "Missing project" : "Not authenticated")
-      return
-    }
-
-    setIsLoading(true)
-    setError(null)
-
-    const [data, err] = await UsageService.getProjectUsage(token, projectId)
-    if (err || !data) {
-      setUsage(null)
-      setError(err ?? "Failed to load overview")
-      setIsLoading(false)
-      return
-    }
-
-    setUsage(data)
-    setIsLoading(false)
-  }, [token, projectId])
-
-  useEffect(() => {
-    void loadUsage()
-  }, [loadUsage])
+  const usageQuery = useQuery({
+    ...projectUsageQuery(token ?? "", projectId ?? ""),
+    enabled: Boolean(token && projectId),
+  })
+  const usage = usageQuery.data
+  const isLoading = usageQuery.isLoading
+  const error = !projectId
+    ? "Missing project"
+    : !token
+      ? "Not authenticated"
+      : (usageQuery.error?.message ?? null)
 
   const project = usage?.project ?? contextProject
   const period = usage?.period

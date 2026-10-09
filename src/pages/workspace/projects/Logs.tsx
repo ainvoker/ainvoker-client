@@ -1,18 +1,19 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { useParams } from "react-router-dom"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { HiArrowPath, HiOutlineDocumentText } from "react-icons/hi2"
-import { useParams } from "react-router-dom"
-import { useQuery } from "@tanstack/react-query"
-import { HiOutlineDocumentText } from "react-icons/hi2"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import AiRequestDetailModal from "../../../components/workspace/AiRequestDetailModal"
 import Skeleton from "../../../components/common/Skeleton"
 import { useAuth } from "../../../contexts/AuthContext"
-import type { AiRequestStatus } from "../../../services/AiRequestService"
+import AiRequestService, {
+  type AiRequestStatus,
+} from "../../../services/AiRequestService"
 import {
   LOGS_PAGE_SIZE,
   projectLogDetailQuery,
   projectLogsQuery,
+  queryKeys,
 } from "../../../utils/queries"
 
 const STATUS_OPTIONS: { label: string; value: "" | AiRequestStatus }[] = [
@@ -71,13 +72,12 @@ const formatTokens = (value: number | null) => {
 const Logs = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const { token } = useAuth()
+  const queryClient = useQueryClient()
 
   const [offset, setOffset] = useState(0)
   const [statusFilter, setStatusFilter] = useState<"" | AiRequestStatus>("")
-  const [isLoading, setIsLoading] = useState(true)
   const [isCheckingForNewLogs, setIsCheckingForNewLogs] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const latestLogId = useRef<string | null>(null)
+  const [refreshError, setRefreshError] = useState<string | null>(null)
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
@@ -97,11 +97,12 @@ const Logs = () => {
     enabled: !missingContext,
     placeholderData: (previous) =>
       previous?.items[0]?.projectId === projectId ? previous : undefined,
-  })  
+  })
   const items = logsQuery.data?.items ?? []
   const total = logsQuery.data?.total ?? 0
   const isLoading = logsQuery.isFetching
-  const error = missingContext ?? logsQuery.error?.message ?? null
+  const error =
+    missingContext ?? logsQuery.error?.message ?? refreshError ?? null
 
   const detailQuery = useQuery({
     ...projectLogDetailQuery(token ?? "", projectId ?? "", selectedId ?? ""),
@@ -118,32 +119,38 @@ const Logs = () => {
 
   const checkForNewLogs = async () => {
     if (!token || !projectId) return
+    const status = statusFilter || undefined
 
     setIsCheckingForNewLogs(true)
-    setError(null)
+    setRefreshError(null)
 
     try {
       const [data, err] = await AiRequestService.list(token, projectId, {
-        status: statusFilter || undefined,
+        status,
         limit: 1,
         offset: 0,
       })
 
       if (err || !data) {
-        setError(err ?? "Failed to check for new logs")
+        setRefreshError(err ?? "Failed to check for new logs")
         return
       }
 
       const newestLogId = data.items[0]?.id ?? null
-      const hasNewLogs =
-        newestLogId !== null && newestLogId !== latestLogId.current
+      const latestLogId =
+        queryClient.getQueryData(
+          projectLogsQuery(token, projectId, status, 0).queryKey,
+        )?.items[0]?.id ?? null
 
-      if (!hasNewLogs) return
+      if (newestLogId === null || newestLogId === latestLogId) return
 
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.projectLogsAll(projectId),
+        refetchType: "none",
+      })
       if (offset === 0) {
-        await loadLogs()
+        await logsQuery.refetch()
       } else {
-        setIsLoading(true)
         setOffset(0)
       }
     } finally {

@@ -28,11 +28,13 @@ export const queryKeys = {
     [...queryKeys.project(projectId), "usage"] as const,
   projectAnalytics: (projectId: string, range: AnalyticsRange) =>
     [...queryKeys.project(projectId), "analytics", range] as const,
+  projectLogsAll: (projectId: string) =>
+    [...queryKeys.project(projectId), "logs"] as const,
   projectLogs: (
     projectId: string,
     status: AiRequestStatus | undefined,
     offset: number,
-  ) => [...queryKeys.project(projectId), "logs", { status, offset }] as const,
+  ) => [...queryKeys.projectLogsAll(projectId), { status, offset }] as const,
   projectLogDetail: (projectId: string, requestId: string) =>
     [...queryKeys.project(projectId), "log", requestId] as const,
   projectModels: (projectId: string) =>

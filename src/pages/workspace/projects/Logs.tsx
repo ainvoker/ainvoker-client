@@ -1,16 +1,19 @@
 import { useState } from "react"
 import { useParams } from "react-router-dom"
-import { useQuery } from "@tanstack/react-query"
-import { HiOutlineDocumentText } from "react-icons/hi2"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { HiArrowPath, HiOutlineDocumentText } from "react-icons/hi2"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import AiRequestDetailModal from "../../../components/workspace/AiRequestDetailModal"
 import Skeleton from "../../../components/common/Skeleton"
 import { useAuth } from "../../../contexts/AuthContext"
-import type { AiRequestStatus } from "../../../services/AiRequestService"
+import AiRequestService, {
+  type AiRequestStatus,
+} from "../../../services/AiRequestService"
 import {
   LOGS_PAGE_SIZE,
   projectLogDetailQuery,
   projectLogsQuery,
+  queryKeys,
 } from "../../../utils/queries"
 
 const STATUS_OPTIONS: { label: string; value: "" | AiRequestStatus }[] = [
@@ -69,9 +72,13 @@ const formatTokens = (value: number | null) => {
 const Logs = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const { token } = useAuth()
+  const queryClient = useQueryClient()
 
   const [offset, setOffset] = useState(0)
   const [statusFilter, setStatusFilter] = useState<"" | AiRequestStatus>("")
+  const [isCheckingForNewLogs, setIsCheckingForNewLogs] = useState(false)
+  const [refreshError, setRefreshError] = useState<string | null>(null)
+
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const missingContext = !projectId
@@ -94,7 +101,8 @@ const Logs = () => {
   const items = logsQuery.data?.items ?? []
   const total = logsQuery.data?.total ?? 0
   const isLoading = logsQuery.isFetching
-  const error = missingContext ?? logsQuery.error?.message ?? null
+  const error =
+    missingContext ?? logsQuery.error?.message ?? refreshError ?? null
 
   const detailQuery = useQuery({
     ...projectLogDetailQuery(token ?? "", projectId ?? "", selectedId ?? ""),
@@ -107,6 +115,47 @@ const Logs = () => {
   const handleStatusChange = (value: "" | AiRequestStatus) => {
     setStatusFilter(value)
     setOffset(0)
+  }
+
+  const checkForNewLogs = async () => {
+    if (!token || !projectId) return
+    const status = statusFilter || undefined
+
+    setIsCheckingForNewLogs(true)
+    setRefreshError(null)
+
+    try {
+      const [data, err] = await AiRequestService.list(token, projectId, {
+        status,
+        limit: 1,
+        offset: 0,
+      })
+
+      if (err || !data) {
+        setRefreshError(err ?? "Failed to check for new logs")
+        return
+      }
+
+      const newestLogId = data.items[0]?.id ?? null
+      const latestLogId =
+        queryClient.getQueryData(
+          projectLogsQuery(token, projectId, status, 0).queryKey,
+        )?.items[0]?.id ?? null
+
+      if (newestLogId === null || newestLogId === latestLogId) return
+
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.projectLogsAll(projectId),
+        refetchType: "none",
+      })
+      if (offset === 0) {
+        await logsQuery.refetch()
+      } else {
+        setOffset(0)
+      }
+    } finally {
+      setIsCheckingForNewLogs(false)
+    }
   }
 
   const closeDetail = () => setSelectedId(null)
@@ -127,22 +176,38 @@ const Logs = () => {
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
               Gateway invocations for this project, newest first.
             </p>
-            <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
-              <span className="text-neutral-500 dark:text-neutral-400">Status</span>
-              <select
-                value={statusFilter}
-                onChange={(event) =>
-                  handleStatusChange(event.target.value as "" | AiRequestStatus)
-                }
-                className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm text-accent outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-neutral-500"
+            <div className="flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+                <span className="text-neutral-500 dark:text-neutral-400">Status</span>
+                <select
+                  value={statusFilter}
+                  onChange={(event) =>
+                    handleStatusChange(event.target.value as "" | AiRequestStatus)
+                  }
+                  className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm text-accent outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-neutral-500"
+                >
+                  {STATUS_OPTIONS.map((option) => (
+                    <option key={option.label} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                onClick={() => void checkForNewLogs()}
+                disabled={isLoading || isCheckingForNewLogs}
+                aria-label="Check for new logs"
+                title="Check for new logs"
+                className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
               >
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option.label} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <HiArrowPath
+                  className={`size-4 ${isCheckingForNewLogs ? "animate-spin" : ""}`}
+                  aria-hidden
+                />
+                Refresh
+              </button>
+            </div>
           </div>
 
           {error ? (

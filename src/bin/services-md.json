@@ -19,7 +19,7 @@
         "codes": [
             {
                 "provider": "openai",
-                "code": "import { AInvoker } from \"ainvoker\"\n\nconst ai = new AInvoker({\n  apiKey: process.env.AINVOKER_API_KEY!,\n})\n\nconst result = await ai.image.generate({\n  model: \"openai/dall-e-3\",\n  prompt: \"A cute puppy eating carrots\",\n})\n\nconsole.log(result.image.base64)"
+                "code": "import { AInvoker } from \"ainvoker\"\n\nconst ai = new AInvoker({\n  apiKey: process.env.AINVOKER_API_KEY!,\n})\n\nconst result = await ai.image.generate({\n  model: \"openai/gpt-image-2.5-flare\",\n  prompt: \"A cute puppy eating carrots\",\n})\n\nconsole.log(result.image.base64)"
             }
         ]
     },

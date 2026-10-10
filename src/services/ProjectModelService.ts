@@ -7,6 +7,7 @@ export type ProjectModel = {
     provider: string;
     name: string;
     slug: string;
+    type: "TEXT" | "IMAGE";
     contextWindow: number;
     freeEligible: boolean;
     enabled: boolean;

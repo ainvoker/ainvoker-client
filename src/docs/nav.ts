@@ -22,6 +22,7 @@ export const docsNav: DocsNavSection[] = [
     items: [
       { slug: "text-chat", title: "Text Chat" },
       { slug: "text-stream", title: "Text Stream" },
+      { slug: "image-generate", title: "Image Generation" },
       { slug: "models", title: "Models" },
       { slug: "limits", title: "Limits" },
       { slug: "errors", title: "Errors" },
@@ -50,4 +51,4 @@ export function getDocsPrevNext(slug: string) {
   }
 }
 
-export const DOCS_BASE_URL = "https://ainvoker-api.onrender.com"
+export const DOCS_BASE_URL = "https://api.ainvoker.dev"

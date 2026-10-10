@@ -47,6 +47,10 @@ const Limits = () => (
       </li>
       <li>Billing and usage are per organization.</li>
       <li>
+        Image models are Pro and Scale only. Each image counts its tokens toward the same monthly
+        token limit, and reserves 8,000 output tokens while it is being generated.
+      </li>
+      <li>
         Scale is usage-based —{" "}
         <a
           href="mailto:support-ainvoker@ainvoker.com?subject=AInvoker%20Scale%20Plan"

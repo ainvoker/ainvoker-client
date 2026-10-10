@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { HiOutlineCpuChip, HiOutlineMagnifyingGlass } from "react-icons/hi2"
+import { HiOutlineCpuChip, HiOutlineMagnifyingGlass, HiOutlinePhoto } from "react-icons/hi2"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import Skeleton from "../../../components/common/Skeleton"
 import { useAuth } from "../../../contexts/AuthContext"
@@ -171,7 +171,11 @@ const Models = () => {
                     className="flex flex-wrap items-center gap-4 px-4 py-4"
                   >
                     <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-                      <HiOutlineCpuChip className="size-4" aria-hidden />
+                      {model.type === "IMAGE" ? (
+                        <HiOutlinePhoto className="size-4" aria-hidden />
+                      ) : (
+                        <HiOutlineCpuChip className="size-4" aria-hidden />
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -185,7 +189,9 @@ const Models = () => {
                         <span className="mx-1.5 text-neutral-300 dark:text-neutral-600">
                           ·
                         </span>
-                        {formatContextWindow(model.contextWindow)} context
+                        {model.type === "IMAGE"
+                          ? "Image generation"
+                          : `${formatContextWindow(model.contextWindow)} context`}
                         {model.freeEligible ? (
                           <>
                             <span className="mx-1.5 text-neutral-300 dark:text-neutral-600">

@@ -50,6 +50,19 @@ const ModelsPage = () => (
       ]}
     />
     <P>
+      Image models for{" "}
+      <Link to="/docs/image-generate" className="text-white underline underline-offset-2 hover:text-[#ddd]">
+        Image Generation
+      </Link>
+      :
+    </P>
+    <DocsTable
+      headers={["Slug", "Provider", "Available on Free"]}
+      rows={[
+        [<InlineCode>openai/gpt-image-2.5-flare</InlineCode>, "OpenAI", "No"],
+      ]}
+    />
+    <P>
       Unknown models return <InlineCode>404 NOT_FOUND</InlineCode>.
     </P>
 

@@ -144,6 +144,15 @@ const res = await ai.text.chat({
 console.log(res.message.content) // "Dark mode is on."
 console.log(res.actionRuns)      // [{ call, result: { ok: true, output, message } }]`
 
+const actionInvokeExample = `// Same as ai.text.chat with messages: [{ role: "user", content: prompt }]
+const res = await ai.action.invoke({
+  model: "openai/gpt-4o-mini",
+  prompt: "Switch theme to dark",
+  tools: [setThemeAction],
+})
+
+console.log(res.message.content)`
+
 const actionsParametersExample = `// Schema libraries without built-in JSON Schema output: pass parameters yourself.
 const setThemeAction = ai.action.define({
   name: "set_theme",
@@ -393,6 +402,12 @@ const TextChat = () => (
       <InlineCode>usage</InlineCode> is summed across steps. Invalid arguments and methods that
       throw are sent to the model as errors so it can recover; they do not throw in your code.
     </P>
+    <P>
+      For a single prompt, <InlineCode>ai.action.invoke</InlineCode> takes the same options with{" "}
+      <InlineCode>prompt</InlineCode> in place of <InlineCode>messages</InlineCode> and returns the
+      same result.
+    </P>
+    <CodeBlock code={actionInvokeExample} language="typescript" title="ai.action.invoke" />
     <Callout title="Actions run in your app" variant="warning">
       The gateway never runs actions, and actions do not create records in AInvoker.{" "}
       <InlineCode>runtime</InlineCode> catches mistakes but does not keep server code out of

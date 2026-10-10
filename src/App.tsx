@@ -45,6 +45,7 @@ const Authentication = lazy(() => import("./pages/docs/Authentication"))
 const ApiKeysDocs = lazy(() => import("./pages/docs/ApiKeys"))
 const TextChat = lazy(() => import("./pages/docs/TextChat"))
 const TextStream = lazy(() => import("./pages/docs/TextStream"))
+const ImageGenerate = lazy(() => import("./pages/docs/ImageGenerate"))
 const ModelsDocs = lazy(() => import("./pages/docs/Models"))
 const Limits = lazy(() => import("./pages/docs/Limits"))
 const Errors = lazy(() => import("./pages/docs/Errors"))
@@ -79,6 +80,7 @@ function App() {
                     <Route path="api-keys" element={<ApiKeysDocs />} />
                     <Route path="text-chat" element={<TextChat />} />
                     <Route path="text-stream" element={<TextStream />} />
+                    <Route path="image-generate" element={<ImageGenerate />} />
                     <Route path="models" element={<ModelsDocs />} />
                     <Route path="limits" element={<Limits />} />
                     <Route path="errors" element={<Errors />} />

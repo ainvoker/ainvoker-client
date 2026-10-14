@@ -2,12 +2,17 @@ import Service from "./Service";
 
 const API_URL = import.meta.env.VITE_API_URL as string | undefined;
 
+/** A category (`text`) or a feature (`text.chat`). */
+export type ApiKeyScope = string;
+
+export type ApiKeyPermissions = { scopes: ApiKeyScope[] };
+
 export type ApiKey = {
     id: string;
     projectId: string;
     keyName: string;
     keyPrefix: string;
-    permissions: unknown | null;
+    permissions: ApiKeyPermissions | null;
     lastUsed: string | null;
     expiresAt: string | null;
     status: string;
@@ -21,8 +26,12 @@ export type CreatedApiKey = ApiKey & {
 
 export type CreateApiKeyInput = {
     keyName: string;
-    permissions?: unknown | null;
+    permissions?: ApiKeyPermissions;
     expiresAt?: string | null;
+};
+
+export type UpdateApiKeyInput = {
+    permissions: ApiKeyPermissions | null;
 };
 
 class ApiKeyService extends Service {
@@ -58,6 +67,29 @@ class ApiKeyService extends Service {
             `${API_URL}/api/v1/projects/${projectId}/api-keys`,
             {
                 method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(input),
+            },
+        );
+    }
+
+    async update(
+        token: string,
+        projectId: string,
+        keyId: string,
+        input: UpdateApiKeyInput,
+    ): Promise<[ApiKey | null, string | undefined]> {
+        if (!API_URL) {
+            return [null, "VITE_API_URL is not configured"];
+        }
+
+        return this.request<ApiKey>(
+            `${API_URL}/api/v1/projects/${projectId}/api-keys/${keyId}`,
+            {
+                method: "PATCH",
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",

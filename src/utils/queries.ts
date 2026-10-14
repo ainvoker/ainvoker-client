@@ -4,7 +4,9 @@ import AiRequestService, {
 } from "../services/AiRequestService"
 import ApiKeyService from "../services/ApiKeyService"
 import ProjectModelService from "../services/ProjectModelService"
-import UsageService, { type AnalyticsRange } from "../services/UsageService"
+import UsageService, {
+  type UsageRangeSelection,
+} from "../services/UsageService"
 
 export const LOGS_PAGE_SIZE = 50
 
@@ -21,13 +23,13 @@ async function unwrap<T>(
 /** Everything under `["project", projectId]` can be invalidated in one call. */
 export const queryKeys = {
   organizations: ["organization"] as const,
-  organizationUsage: (organizationId: string) =>
-    [...queryKeys.organizations, organizationId, "usage"] as const,
+  organizationUsage: (organizationId: string, selection: UsageRangeSelection) =>
+    [...queryKeys.organizations, organizationId, "usage", selection] as const,
   project: (projectId: string) => ["project", projectId] as const,
   projectUsage: (projectId: string) =>
     [...queryKeys.project(projectId), "usage"] as const,
-  projectAnalytics: (projectId: string, range: AnalyticsRange) =>
-    [...queryKeys.project(projectId), "analytics", range] as const,
+  projectAnalytics: (projectId: string, selection: UsageRangeSelection) =>
+    [...queryKeys.project(projectId), "analytics", selection] as const,
   projectLogsAll: (projectId: string) =>
     [...queryKeys.project(projectId), "logs"] as const,
   projectLogs: (
@@ -43,12 +45,18 @@ export const queryKeys = {
     [...queryKeys.project(projectId), "api-keys"] as const,
 }
 
-export const organizationUsageQuery = (token: string, organizationId: string) =>
+export const CURRENT_PERIOD: UsageRangeSelection = { range: "current_period" }
+
+export const organizationUsageQuery = (
+  token: string,
+  organizationId: string,
+  selection: UsageRangeSelection = CURRENT_PERIOD,
+) =>
   queryOptions({
-    queryKey: queryKeys.organizationUsage(organizationId),
+    queryKey: queryKeys.organizationUsage(organizationId, selection),
     queryFn: () =>
       unwrap(
-        UsageService.getOrganizationUsage(token, organizationId),
+        UsageService.getOrganizationUsage(token, organizationId, selection),
         "Failed to load dashboard",
       ),
   })
@@ -66,13 +74,13 @@ export const projectUsageQuery = (token: string, projectId: string) =>
 export const projectAnalyticsQuery = (
   token: string,
   projectId: string,
-  range: AnalyticsRange,
+  selection: UsageRangeSelection = CURRENT_PERIOD,
 ) =>
   queryOptions({
-    queryKey: queryKeys.projectAnalytics(projectId, range),
+    queryKey: queryKeys.projectAnalytics(projectId, selection),
     queryFn: () =>
       unwrap(
-        UsageService.getProjectAnalytics(token, projectId, range),
+        UsageService.getProjectAnalytics(token, projectId, selection),
         "Failed to load analytics",
       ),
   })

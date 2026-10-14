@@ -4,7 +4,6 @@ import type {
   UsageDailySegmentPoint,
 } from "../../services/UsageService"
 import {
-  daysInUtcMonth,
   evenPaceAtDay,
   formatQuotaValue,
   type BindingQuota,
@@ -20,11 +19,10 @@ type QuotaPaceChartProps = {
   className?: string
   /** Shorter chart for dense pages. */
   compact?: boolean
-  /**
-   * Zoom to the last N elapsed days of this month.
-   * Omit for the full month (includes future shaded zone).
-   */
-  windowDays?: number
+  /** UTC days in the window; days past `daily` render as a shaded future zone. */
+  totalDays: number
+  /** First UTC day of the window (`YYYY-MM-DD`), used to date future days. */
+  startDate: string
   /** Cumulative burn (default) or per-day usage. */
   series?: QuotaPaceSeries
   /**
@@ -197,36 +195,28 @@ const QuotaPaceChart = ({
   showPaceLine = true,
   className,
   compact = false,
-  windowDays,
+  totalDays,
+  startDate,
   series = "cumulative",
   breakdown,
 }: QuotaPaceChartProps) => {
   const gradientId = useId()
   const [hover, setHover] = useState<number | null>(null)
-  const dim = daysInUtcMonth()
+  const dim = Math.max(totalDays, daily.length, 1)
   const todayIndex = daily.length
   const isDaily = series === "daily"
-  const isZoomed = windowDays != null && windowDays > 0
   const isStacked = (breakdown?.length ?? 0) > 0
 
   const points = useMemo(() => {
     const all: ChartPoint[] = []
     let cumulative = 0
+    const startMs = Date.parse(`${startDate}T00:00:00Z`)
 
-    // Rolling ranges can span more days than the current month has.
-    for (let i = 1; i <= Math.max(dim, daily.length); i++) {
+    for (let i = 1; i <= dim; i++) {
       const day = daily[i - 1]
       const date =
         day?.date ??
-        new Date(
-          Date.UTC(
-            new Date().getUTCFullYear(),
-            new Date().getUTCMonth(),
-            i,
-          ),
-        )
-          .toISOString()
-          .slice(0, 10)
+        new Date(startMs + (i - 1) * 86_400_000).toISOString().slice(0, 10)
       const dayUsed = day
         ? binding.resource === "requests"
           ? day.requestsUsed
@@ -245,20 +235,8 @@ const QuotaPaceChart = ({
       })
     }
 
-    if (!isZoomed) return all
-
-    const elapsed = Math.max(1, todayIndex)
-    const startDay = Math.max(1, elapsed - windowDays! + 1)
-    return all.filter((p) => p.dayIndex >= startDay && p.dayIndex <= elapsed)
-  }, [
-    daily,
-    binding.resource,
-    binding.limit,
-    dim,
-    todayIndex,
-    isZoomed,
-    windowDays,
-  ])
+    return all
+  }, [daily, binding.resource, binding.limit, dim, todayIndex, startDate])
 
   const stackLayers = useMemo(
     () =>
@@ -280,9 +258,7 @@ const QuotaPaceChart = ({
         showPaceLine && !binding.unlimited
           ? isDaily
             ? dailyAllowance
-            : isZoomed
-              ? Math.max(...visibleElapsed.map((p) => p.pace), 0)
-              : binding.limit
+            : binding.limit
           : 0
       return Math.max(maxStack, paceRef, 1)
     }
@@ -298,15 +274,6 @@ const QuotaPaceChart = ({
       ...visibleElapsed.map((p) => p.cumulative),
       0,
     )
-    if (isZoomed) {
-      const maxPace = Math.max(
-        ...visibleElapsed.map((p) => p.pace),
-        0,
-      )
-      const paceRef =
-        showPaceLine && !binding.unlimited ? maxPace : 0
-      return Math.max(maxCum, paceRef, 1)
-    }
 
     return Math.max(
       showPaceLine && !binding.unlimited ? binding.limit : 0,
@@ -322,7 +289,6 @@ const QuotaPaceChart = ({
     binding.unlimited,
     binding.limit,
     dailyAllowance,
-    isZoomed,
   ])
 
   const plotW = WIDTH - PAD.left - PAD.right
@@ -371,8 +337,7 @@ const QuotaPaceChart = ({
       .join(" ")
   })()
 
-  const showFutureZone =
-    !isZoomed && todayIndex > 0 && todayIndex < dim && points.length > 0
+  const showFutureZone = todayIndex > 0 && todayIndex < dim && points.length > 0
 
   const active =
     hover != null && hover >= 0 && hover < points.length
@@ -398,20 +363,15 @@ const QuotaPaceChart = ({
   const ariaLabel = isStacked
     ? `Stacked ${isDaily ? "daily" : "cumulative"} ${binding.resource} by segment`
     : isDaily
-      ? `Daily ${binding.resource} usage${isZoomed ? ` (last ${windowDays} days)` : " this month"}`
+      ? `Daily ${binding.resource} usage in range`
       : binding.unlimited
-        ? `Cumulative ${binding.resource} this month: ${formatQuotaValue(binding.resource, actualEnd?.cumulative ?? 0)}`
+        ? `Cumulative ${binding.resource} in range: ${formatQuotaValue(binding.resource, actualEnd?.cumulative ?? 0)}`
         : overPace
           ? `Over pace: ${formatQuotaValue(binding.resource, actualEnd?.cumulative ?? 0)} used of ${formatQuotaValue(binding.resource, binding.limit)}`
           : `On pace: ${formatQuotaValue(binding.resource, actualEnd?.cumulative ?? 0)} used of ${formatQuotaValue(binding.resource, binding.limit)}`
 
-  const leftLabel = isZoomed
-    ? formatAxisDay(points[0]?.date ?? "")
-    : "1"
-  const midLabel = isZoomed ? null : "Month"
-  const rightLabel = isZoomed
-    ? formatAxisDay(points[points.length - 1]?.date ?? "")
-    : String(dim)
+  const leftLabel = formatAxisDay(points[0]?.date ?? startDate)
+  const rightLabel = formatAxisDay(points[points.length - 1]?.date ?? startDate)
 
   const paceLegend = isDaily ? "Daily allowance" : "Even pace"
 
@@ -419,7 +379,7 @@ const QuotaPaceChart = ({
 
   const yTicks = [
     { value: 0, dy: 3 },
-    { value: yMax / 2, dy: 3 },
+    ...(yMax >= 2 ? [{ value: yMax / 2, dy: 3 }] : []),
     { value: yMax, dy: 4 },
   ]
 
@@ -429,7 +389,7 @@ const QuotaPaceChart = ({
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className={[
           "block h-auto w-full text-accent motion-safe:animate-[hero-in_0.6s_cubic-bezier(0.22,1,0.36,1)_forwards] [@media(prefers-reduced-motion:reduce)]:animate-none",
-          compact ? "max-h-44" : "max-h-60",
+          compact ? "max-h-44" : "max-h-80",
         ].join(" ")}
         style={{ aspectRatio: `${WIDTH} / ${HEIGHT}` }}
         role="img"
@@ -510,7 +470,7 @@ const QuotaPaceChart = ({
           />
         ) : null}
 
-        {!isZoomed && todayIndex > 0 && todayIndex <= dim ? (
+        {showFutureZone ? (
           <line
             x1={xAt(todayIndex)}
             x2={xAt(todayIndex)}
@@ -583,16 +543,6 @@ const QuotaPaceChart = ({
         >
           {leftLabel}
         </text>
-        {midLabel ? (
-          <text
-            x={PAD.left + plotW / 2}
-            y={HEIGHT - 8}
-            textAnchor="middle"
-            className="fill-neutral-400 text-[10px]"
-          >
-            {midLabel}
-          </text>
-        ) : null}
         <text
           x={WIDTH - PAD.right}
           y={HEIGHT - 8}

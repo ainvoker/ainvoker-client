@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { HiOutlineKey, HiOutlinePlus } from "react-icons/hi2"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import CreateApiKeyModal from "../../../components/workspace/CreateApiKeyModal"
+import EditApiKeyModal from "../../../components/workspace/EditApiKeyModal"
 import RevealApiKeyModal from "../../../components/workspace/RevealApiKeyModal"
 import Button from "../../../components/common/Button"
 import Skeleton from "../../../components/common/Skeleton"
@@ -13,7 +14,9 @@ import ApiKeyService, {
   type ApiKey,
   type CreateApiKeyInput,
   type CreatedApiKey,
+  type UpdateApiKeyInput,
 } from "../../../services/ApiKeyService"
+import { permissionLabels } from "../../../utils/apiKeyCapabilities"
 import { projectApiKeysQuery, queryKeys } from "../../../utils/queries"
 
 const formatDate = (value: string | null) => {
@@ -57,6 +60,7 @@ const ApiKeys = () => {
 
   const [createOpen, setCreateOpen] = useState(false)
   const [revealedKey, setRevealedKey] = useState<CreatedApiKey | null>(null)
+  const [editingKey, setEditingKey] = useState<ApiKey | null>(null)
   const createDisabled = !token || !projectId || !canMutateResources
 
   const keysQuery = useQuery({
@@ -112,6 +116,23 @@ const ApiKeys = () => {
     })
     setRevealedKey(created)
     return [created, undefined]
+  }
+
+  const handleUpdate = async (
+    key: ApiKey,
+    input: UpdateApiKeyInput,
+  ): Promise<[ApiKey | null, string | undefined]> => {
+    if (!token || !projectId) {
+      return [null, "Not authenticated"]
+    }
+
+    const [updated, err] = await ApiKeyService.update(token, projectId, key.id, input)
+    if (err || !updated) {
+      return [null, err ?? "Failed to update API key"]
+    }
+
+    setKeys((prev) => prev.map((k) => (k.id === updated.id ? updated : k)))
+    return [updated, undefined]
   }
 
   const handleRevoke = async (key: ApiKey) => {
@@ -240,6 +261,7 @@ const ApiKeys = () => {
                     <tr className="border-b border-neutral-200/80 text-xs tracking-wide text-neutral-400 uppercase dark:border-neutral-700">
                       <th className="px-4 py-3 font-medium">Name</th>
                       <th className="px-4 py-3 font-medium">Prefix</th>
+                      <th className="px-4 py-3 font-medium">Permissions</th>
                       <th className="px-4 py-3 font-medium">Status</th>
                       <th className="px-4 py-3 font-medium">Last used</th>
                       <th className="px-4 py-3 font-medium">Expires</th>
@@ -269,6 +291,18 @@ const ApiKeys = () => {
                             …
                           </td>
                           <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-1">
+                              {permissionLabels(key.permissions).map((label) => (
+                                <span
+                                  key={label}
+                                  className="inline-flex rounded-md bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300"
+                                >
+                                  {label}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
                             <span
                               className={[
                                 "inline-flex rounded-md px-2 py-0.5 text-xs font-medium",
@@ -289,6 +323,16 @@ const ApiKeys = () => {
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center justify-end gap-2">
+                              {key.status.trim().toUpperCase() === "ACTIVE" && canMutateResources ? (
+                                <button
+                                  type="button"
+                                  disabled={busy}
+                                  onClick={() => setEditingKey(key)}
+                                  className="rounded-md px-2 py-1 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-100 disabled:opacity-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                >
+                                  Edit
+                                </button>
+                              ) : null}
                               {!revoked ? (
                                 <button
                                   type="button"
@@ -324,6 +368,13 @@ const ApiKeys = () => {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onSubmit={handleCreate}
+      />
+
+      <EditApiKeyModal
+        key={editingKey?.id ?? "closed"}
+        apiKey={editingKey}
+        onClose={() => setEditingKey(null)}
+        onSubmit={handleUpdate}
       />
 
       <RevealApiKeyModal

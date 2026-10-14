@@ -48,6 +48,20 @@ const ApiKeysPage = () => (
       for details.
     </P>
 
+    <H2>Permissions and expiry</H2>
+    <P>
+      New keys start with no permissions. Grant a whole category (for example{" "}
+      <InlineCode>text</InlineCode>, which covers chat and streaming) or single features such as{" "}
+      <InlineCode>text.chat</InlineCode> or <InlineCode>image.generate</InlineCode>. A key calling
+      an endpoint it isn't allowed to use gets <InlineCode>403 API_KEY_SCOPE_DENIED</InlineCode>.
+      You can change an active key's permissions from the dashboard at any time; the change
+      applies on its next request.
+    </P>
+    <P>
+      An expiry date is optional and must be in the future. It is fixed at creation. To change
+      it, create a new key and revoke the old one.
+    </P>
+
     <H2>Revoke or delete</H2>
     <Ul>
       <li>

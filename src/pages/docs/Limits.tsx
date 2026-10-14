@@ -13,12 +13,20 @@ const Limits = () => (
   <DocsArticle
     slug="limits"
     title="Limits"
-    description="Monthly request and token quotas apply per workspace plan."
+    description="Request and token quotas apply per workspace plan and reset each billing period."
   >
     <H2>How limits work</H2>
     <P>
-      Usage is tracked per organization for the current calendar month (UTC). When you hit a
-      monthly cap, the API returns <InlineCode>429 RATE_LIMIT_EXCEEDED</InlineCode>.
+      Usage is tracked per organization for the current billing period. A period starts when
+      your plan starts (for Pro, when payment succeeds) and renews monthly on that date, so
+      paying mid-month gives you a full period from that day. When you hit a cap, the API
+      returns <InlineCode>429 RATE_LIMIT_EXCEEDED</InlineCode>.
+    </P>
+    <P>
+      Each renewal starts a new period with the full allowance; unused quota does not carry
+      over. A workspace awaiting checkout, or whose plan has ended, has no quota until the plan
+      is active again. The dashboard can also show usage for the last 7 days, a calendar month,
+      or a custom date range — those views do not change your quota.
     </P>
     <P>
       Successful responses can also include <InlineCode>X-RateLimit-*</InlineCode> headers with
@@ -34,7 +42,7 @@ const Limits = () => (
 
     <H2>Plan quotas</H2>
     <DocsTable
-      headers={["Plan", "Requests / month", "Tokens / month", "Models"]}
+      headers={["Plan", "Requests / period", "Tokens / period", "Models"]}
       rows={[
         ["Free", "300", "50,000", "Free-tier models only"],
         ["Pro", "5,000", "2,000,000", "All models"],
@@ -79,7 +87,7 @@ const Limits = () => (
         [
           "429",
           <InlineCode>RATE_LIMIT_EXCEEDED</InlineCode>,
-          "Monthly request or token limit reached",
+          "Request or token limit for the billing period reached",
         ],
       ]}
     />

@@ -1,4 +1,4 @@
-import type { UsageDailyPoint, UsagePlanSnapshot } from "../services/UsageService"
+import type { UsagePlanSnapshot } from "../services/UsageService"
 import { formatCompactNumber, formatTokens } from "./requests"
 
 export type QuotaResource = "requests" | "tokens"
@@ -17,20 +17,49 @@ export type PaceStatus = "on_pace" | "over_pace" | "no_limit" | "empty"
 export type PaceInsight = {
   status: PaceStatus
   daysElapsed: number
-  daysInMonth: number
+  daysInPeriod: number
   daysLeft: number
   evenPaceToday: number
   cumulativeToday: number
   etaLabel: string | null
 }
 
+export type PeriodBounds = { periodStart: string; periodEnd: string }
+
 const WARNING_PCT = 70
 const CRITICAL_PCT = 90
+const DAY_MS = 86_400_000
 
-export function daysInUtcMonth(now = new Date()): number {
-  return new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0),
-  ).getUTCDate()
+function utcDayStart(ms: number): number {
+  const d = new Date(ms)
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+}
+
+/** UTC calendar days touched by a window (`periodEnd` exclusive). */
+export function windowDayCount({ periodStart, periodEnd }: PeriodBounds): number {
+  const first = utcDayStart(Date.parse(periodStart))
+  const last = utcDayStart(Date.parse(periodEnd) - 1)
+  return Math.max(1, Math.round((last - first) / DAY_MS) + 1)
+}
+
+/** Format a window as "Oct 15, 2026 – Nov 14, 2026" in UTC. */
+export function formatWindowLabel({ periodStart, periodEnd }: PeriodBounds): string {
+  const fmt = (ms: number) =>
+    new Date(ms).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      timeZone: "UTC",
+    })
+  return `${fmt(Date.parse(periodStart))} – ${fmt(Date.parse(periodEnd) - 1)}`
+}
+
+/** Explains why a pending or lapsed plan has no quota; null when entitled. */
+export function inactivePlanSentence(plan: UsagePlanSnapshot | null): string | null {
+  if (!plan || plan.entitled) return null
+  return plan.status === "PENDING"
+    ? "Complete checkout to activate this plan's quota."
+    : "This plan has ended. Renew to restore quota."
 }
 
 export function barPercent(used: number, limit: number): number {
@@ -44,6 +73,17 @@ export function resolveBindingQuota(
   tokensUsed: number,
   plan: UsagePlanSnapshot | null,
 ): BindingQuota {
+  if (plan && !plan.entitled) {
+    return {
+      resource: "tokens",
+      used: 0,
+      limit: 0,
+      remaining: 0,
+      percentUsed: 0,
+      unlimited: false,
+    }
+  }
+
   const requestLimit = plan?.requestLimit ?? 0
   const tokenLimit = plan?.tokenLimit ?? 0
   const requestsUnlimited = requestLimit <= 0
@@ -111,29 +151,42 @@ export function secondaryResource(
   }
 }
 
-export function evenPaceAtDay(limit: number, dayIndex: number, daysInMonth: number) {
-  if (limit <= 0 || daysInMonth <= 0) return 0
-  return (limit * dayIndex) / daysInMonth
+export function evenPaceAtDay(limit: number, dayIndex: number, daysInPeriod: number) {
+  if (limit <= 0 || daysInPeriod <= 0) return 0
+  return (limit * dayIndex) / daysInPeriod
 }
 
+/** Pace of quota usage within the current billing period. */
 export function computePaceInsight(
-  daily: UsageDailyPoint[],
   binding: BindingQuota,
+  period: PeriodBounds | null,
   now = new Date(),
 ): PaceInsight {
-  const dim = daysInUtcMonth(now)
-  const daysElapsed = Math.max(1, daily.length)
-  const daysLeft = Math.max(0, dim - now.getUTCDate())
-  const cumulativeToday = daily.reduce((sum, d) => {
-    return sum + (binding.resource === "requests" ? d.requestsUsed : d.tokensUsed)
-  }, 0)
-  const evenPaceToday = evenPaceAtDay(binding.limit, daysElapsed, dim)
+  const daysInPeriod = period ? windowDayCount(period) : 1
+  const daysElapsed = period
+    ? Math.min(
+        daysInPeriod,
+        Math.max(
+          1,
+          Math.round(
+            (utcDayStart(now.getTime()) -
+              utcDayStart(Date.parse(period.periodStart))) /
+              DAY_MS,
+          ) + 1,
+        ),
+      )
+    : 1
+  const daysLeft = period
+    ? Math.max(0, Math.ceil((Date.parse(period.periodEnd) - now.getTime()) / DAY_MS))
+    : 0
+  const cumulativeToday = binding.used
+  const evenPaceToday = evenPaceAtDay(binding.limit, daysElapsed, daysInPeriod)
 
   if (binding.unlimited) {
     return {
       status: "no_limit",
       daysElapsed,
-      daysInMonth: dim,
+      daysInPeriod,
       daysLeft,
       evenPaceToday: 0,
       cumulativeToday,
@@ -145,7 +198,7 @@ export function computePaceInsight(
     return {
       status: "empty",
       daysElapsed,
-      daysInMonth: dim,
+      daysInPeriod,
       daysLeft,
       evenPaceToday,
       cumulativeToday: 0,
@@ -179,7 +232,7 @@ export function computePaceInsight(
   return {
     status: overPace ? "over_pace" : "on_pace",
     daysElapsed,
-    daysInMonth: dim,
+    daysInPeriod,
     daysLeft,
     evenPaceToday,
     cumulativeToday,
@@ -218,13 +271,13 @@ export function paceSentence(
     return "No plan limit on this resource"
   }
   if (pace.status === "empty") {
-    return "No traffic this month. Remaining quota is unused."
+    return "No traffic this billing period. Remaining quota is unused."
   }
   if (pace.status === "over_pace" && pace.etaLabel) {
     return `At this rate, ${binding.resource} run out around ${pace.etaLabel}.`
   }
   if (pace.status === "over_pace") {
-    return "Over pace for this month"
+    return "Over pace for this billing period"
   }
-  return "On pace for this month"
+  return "On pace for this billing period"
 }

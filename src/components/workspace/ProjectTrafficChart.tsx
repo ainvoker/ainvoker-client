@@ -1,10 +1,14 @@
 import { useState } from "react"
 import type {
-  AnalyticsRange,
   UsageDailyPoint,
   UsageDailySegmentPoint,
 } from "../../services/UsageService"
-import type { BindingQuota, QuotaResource } from "../../utils/quota"
+import {
+  windowDayCount,
+  type BindingQuota,
+  type PeriodBounds,
+  type QuotaResource,
+} from "../../utils/quota"
 import { formatCompactNumber, formatTokens } from "../../utils/requests"
 import QuotaPaceChart, { type QuotaPaceSeries } from "./QuotaPaceChart"
 import SegmentedControl from "./SegmentedControl"
@@ -12,7 +16,7 @@ import SegmentedControl from "./SegmentedControl"
 type GroupBy = "total" | "model" | "apiKey"
 
 type ProjectTrafficChartProps = {
-  range: AnalyticsRange
+  period: PeriodBounds
   daily: UsageDailyPoint[]
   dailyByModel: UsageDailySegmentPoint[]
   dailyByApiKey: UsageDailySegmentPoint[]
@@ -35,7 +39,7 @@ const GROUP_OPTIONS: { value: GroupBy; label: string }[] = [
 ]
 
 const ProjectTrafficChart = ({
-  range,
+  period,
   daily,
   dailyByModel,
   dailyByApiKey,
@@ -102,7 +106,8 @@ const ProjectTrafficChart = ({
         daily={daily}
         binding={binding}
         showPaceLine={false}
-        windowDays={range === "billing_month" ? undefined : daily.length}
+        totalDays={windowDayCount(period)}
+        startDate={period.periodStart.slice(0, 10)}
         series={series}
         breakdown={breakdown}
         className="mt-4 -mx-1"

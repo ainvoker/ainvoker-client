@@ -1,22 +1,27 @@
 type WorkspacePageProps = {
   title: string
   description?: string
+  /** Controls shown at the right of the header. */
+  actions?: React.ReactNode
   children?: React.ReactNode
 }
 
 /** Shared empty-state shell for workspace outlets */
-const WorkspacePage = ({ title, description, children }: WorkspacePageProps) => {
+const WorkspacePage = ({ title, description, actions, children }: WorkspacePageProps) => {
   return (
     <div className="flex flex-col gap-4 animate-[hero-in_0.5s_cubic-bezier(0.22,1,0.36,1)_forwards]">
-      <header className="flex flex-col gap-0.5">
-        <h1 className="text-xl font-semibold tracking-tight text-accent md:text-2xl">
-          {title}
-        </h1>
-        {description ? (
-          <p className="max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">
-            {description}
-          </p>
-        ) : null}
+      <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-0.5">
+          <h1 className="text-xl font-semibold tracking-tight text-accent md:text-2xl">
+            {title}
+          </h1>
+          {description ? (
+            <p className="max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">
+              {description}
+            </p>
+          ) : null}
+        </div>
+        {actions}
       </header>
 
       {children ?? (

@@ -289,12 +289,12 @@ const TextChat = () => (
         [<InlineCode>X-RateLimit-Limit-Requests</InlineCode>, "Monthly request limit"],
         [
           <InlineCode>X-RateLimit-Remaining-Requests</InlineCode>,
-          "Requests remaining this month",
+          "Requests remaining this billing period",
         ],
         [<InlineCode>X-RateLimit-Limit-Tokens</InlineCode>, "Monthly token limit"],
         [
           <InlineCode>X-RateLimit-Remaining-Tokens</InlineCode>,
-          "Tokens remaining this month",
+          "Tokens remaining this billing period",
         ],
       ]}
     />

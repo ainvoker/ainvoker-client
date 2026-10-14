@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { HiOutlineFolder } from "react-icons/hi2"
@@ -11,19 +11,26 @@ import SuccessArc from "../../components/workspace/SuccessArc"
 import PlanBreakoutCard from "../../components/workspace/PlanBreakoutCard"
 import ShareBars from "../../components/workspace/ShareBars"
 import RecentRequestsTable from "../../components/workspace/RecentRequestsTable"
+import UsageRangePicker from "../../components/workspace/UsageRangePicker"
 import { useAuth } from "../../contexts/AuthContext"
 import { useWorkspace } from "../../contexts/WorkspaceContext"
-import { organizationUsageQuery } from "../../utils/queries"
+import type {
+  AnalyticsRange,
+  UsageRangeSelection,
+} from "../../services/UsageService"
+import { CURRENT_PERIOD, organizationUsageQuery } from "../../utils/queries"
 import {
   formatCompactNumber,
   formatTokens,
   successRatePercent,
 } from "../../utils/requests"
 import {
+  formatWindowLabel,
   isQuotaElevated,
   resolveBindingQuota,
 } from "../../utils/quota"
 import { routes } from "../../utils/navigation"
+import { rangeHint } from "../../utils/usageRange"
 
 const DashboardSkeleton = () => (
   <div className="flex flex-col gap-4" aria-busy="true" role="status">
@@ -48,6 +55,13 @@ const DashboardSkeleton = () => (
   </div>
 )
 
+const RANGE_MODES: AnalyticsRange[] = [
+  "current_period",
+  "7d",
+  "calendar_month",
+  "custom",
+]
+
 const Dashboard = () => {
   const { token } = useAuth()
   const {
@@ -56,11 +70,29 @@ const Dashboard = () => {
     isLoading: workspaceLoading,
   } = useWorkspace()
 
+  const [rangeState, setRangeState] = useState<{
+    organizationId: string | null
+    selection: UsageRangeSelection
+  }>({ organizationId: activeOrganizationId, selection: CURRENT_PERIOD })
+  const selection =
+    rangeState.organizationId === activeOrganizationId
+      ? rangeState.selection
+      : CURRENT_PERIOD
+  const setSelection = (next: UsageRangeSelection) =>
+    setRangeState({ organizationId: activeOrganizationId, selection: next })
+
   const usageQuery = useQuery({
-    ...organizationUsageQuery(token ?? "", activeOrganizationId ?? ""),
+    ...organizationUsageQuery(
+      token ?? "",
+      activeOrganizationId ?? "",
+      selection,
+    ),
     enabled: Boolean(token && activeOrganizationId),
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[1] === activeOrganizationId ? previous : undefined,
   })
   const usage = usageQuery.data
+  const isRefreshing = usageQuery.isPlaceholderData
   const error = !activeOrganizationId
     ? null
     : !token
@@ -75,13 +107,15 @@ const Dashboard = () => {
     ? successRatePercent(period.successfulRequests, period.failedRequests)
     : null
 
+  const quota = usage?.quota
   const binding = resolveBindingQuota(
-    period?.requestsUsed ?? 0,
-    period?.tokensUsed ?? 0,
+    quota?.requestsUsed ?? 0,
+    quota?.tokensUsed ?? 0,
     usage?.plan ?? null,
   )
   const elevated = isQuotaElevated(binding.percentUsed, binding.unlimited)
-  const noPlan = !usage?.plan
+  const noPlan = !usage?.plan?.entitled
+  const hint = rangeHint(selection)
 
   const requestSeries = useMemo(
     () => daily.map((d) => d.requestsUsed),
@@ -136,6 +170,22 @@ const Dashboard = () => {
       <WorkspacePage
         title="Dashboard"
         description={`Monitor plan capacity and inference traffic across ${workspaceName}.`}
+        actions={
+          <UsageRangePicker
+            key={activeOrganizationId ?? "none"}
+            value={selection}
+            onChange={setSelection}
+            availableMonths={usage?.availableMonths ?? []}
+            modes={RANGE_MODES}
+            windowLabel={
+              period ? (
+                <p className="text-xs text-neutral-400">
+                  {formatWindowLabel(period)} (UTC)
+                </p>
+              ) : null
+            }
+          />
+        }
       >
         {error ? (
           <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400">
@@ -146,18 +196,24 @@ const Dashboard = () => {
         {busy && !usage ? (
           <DashboardSkeleton />
         ) : (
-          <div className="flex flex-col gap-4">
+          <div
+            className={[
+              "flex flex-col gap-4 transition-opacity",
+              isRefreshing ? "opacity-60" : "",
+            ].join(" ")}
+            aria-busy={isRefreshing}
+          >
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <SparkMetricChip
                 label="Requests used"
                 value={formatCompactNumber(period?.requestsUsed ?? 0)}
-                hint="This month"
+                hint={hint}
                 series={requestSeries}
               />
               <SparkMetricChip
                 label="Tokens used"
                 value={formatTokens(period?.tokensUsed ?? 0)}
-                hint="Input + output"
+                hint={`Input + output · ${hint}`}
                 series={tokenSeries}
               />
               <SparkMetricChip
@@ -181,8 +237,15 @@ const Dashboard = () => {
               <div className="lg:col-span-2">
                 <QuotaHero
                   plan={usage?.plan ?? null}
-                  requestsUsed={period?.requestsUsed ?? 0}
-                  tokensUsed={period?.tokensUsed ?? 0}
+                  requestsUsed={quota?.requestsUsed ?? 0}
+                  tokensUsed={quota?.tokensUsed ?? 0}
+                  chartPeriod={
+                    period ?? {
+                      periodStart: new Date().toISOString(),
+                      periodEnd: new Date().toISOString(),
+                    }
+                  }
+                  isCurrentPeriod={usage?.range === "current_period"}
                   daily={daily}
                   dailyByProject={usage?.dailyByProject}
                   dailyByModel={usage?.dailyByModel}
@@ -208,7 +271,7 @@ const Dashboard = () => {
                 title={
                   noPlan
                     ? "Activate a plan to unlock capacity"
-                    : "You are approaching this month’s limit"
+                    : "You are approaching this billing period’s limit"
                 }
                 body={
                   noPlan

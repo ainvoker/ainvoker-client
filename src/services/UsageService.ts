@@ -7,9 +7,14 @@ export type UsagePlanSnapshot = {
     planName: string;
     status: string;
     billingMode: string;
+    /** False for PENDING or lapsed plans; limits are then zero. */
+    entitled: boolean;
     requestLimit: number;
     tokenLimit: number;
     expiresAt: string | null;
+    /** Current billing period bounds; null when the plan is not entitled. */
+    periodStart: string | null;
+    periodEnd: string | null;
 };
 
 export type UsagePeriod = {
@@ -18,6 +23,8 @@ export type UsagePeriod = {
     successfulRequests: number;
     failedRequests: number;
     periodStart: string;
+    /** Exclusive end; may be in the future. */
+    periodEnd: string;
 };
 
 export type OrgUsageProject = {
@@ -59,6 +66,12 @@ export type UsageDailySegmentPoint = {
 
 export type OrganizationUsage = {
     plan: UsagePlanSnapshot | null;
+    range: AnalyticsRange;
+    /** UTC `YYYY-MM` months with a subscription, newest first. */
+    availableMonths: string[];
+    /** Usage in the current billing period; null when the plan is not entitled. */
+    quota: UsagePeriod | null;
+    /** Usage in the selected range. */
     period: UsagePeriod;
     projects: OrgUsageProject[];
     byModel: OrgUsageByModel[];
@@ -96,7 +109,33 @@ export type ProjectUsage = {
     recentRequests: AiRequestSummary[];
 };
 
-export type AnalyticsRange = "billing_month" | "7d" | "30d";
+export type AnalyticsRange =
+    | "current_period"
+    | "7d"
+    | "30d"
+    | "calendar_month"
+    | "custom";
+
+export type UsageRangeSelection = {
+    range: AnalyticsRange;
+    /** `YYYY-MM`, required for calendar_month. */
+    month?: string;
+    /** Inclusive UTC days (`YYYY-MM-DD`), required for custom. */
+    from?: string;
+    to?: string;
+};
+
+function rangeQueryString(selection: UsageRangeSelection): string {
+    const params = new URLSearchParams({ range: selection.range });
+    if (selection.range === "calendar_month" && selection.month) {
+        params.set("month", selection.month);
+    }
+    if (selection.range === "custom" && selection.from && selection.to) {
+        params.set("from", selection.from);
+        params.set("to", selection.to);
+    }
+    return params.toString();
+}
 
 export type ApiKeyUsageRow = {
     apiKeyId: string;
@@ -108,6 +147,7 @@ export type ApiKeyUsageRow = {
 
 export type ProjectAnalytics = {
     range: AnalyticsRange;
+    availableMonths: string[];
     project: {
         id: string;
         organizationId: string;
@@ -138,13 +178,14 @@ class UsageService extends Service {
     async getOrganizationUsage(
         token: string,
         organizationId: string,
+        selection: UsageRangeSelection = { range: "current_period" },
     ): Promise<[OrganizationUsage | null, string | undefined]> {
         if (!API_URL) {
             return [null, "VITE_API_URL is not configured"];
         }
 
         return this.request<OrganizationUsage>(
-            `${API_URL}/api/v1/organizations/${organizationId}/usage`,
+            `${API_URL}/api/v1/organizations/${organizationId}/usage?${rangeQueryString(selection)}`,
             {
                 method: "GET",
                 headers: {
@@ -176,14 +217,14 @@ class UsageService extends Service {
     async getProjectAnalytics(
         token: string,
         projectId: string,
-        range: AnalyticsRange,
+        selection: UsageRangeSelection,
     ): Promise<[ProjectAnalytics | null, string | undefined]> {
         if (!API_URL) {
             return [null, "VITE_API_URL is not configured"];
         }
 
         return this.request<ProjectAnalytics>(
-            `${API_URL}/api/v1/projects/${projectId}/analytics?range=${range}`,
+            `${API_URL}/api/v1/projects/${projectId}/analytics?${rangeQueryString(selection)}`,
             {
                 method: "GET",
                 headers: {

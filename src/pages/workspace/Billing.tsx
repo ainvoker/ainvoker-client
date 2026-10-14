@@ -163,8 +163,8 @@ const Billing = () => {
     )
     if (usage) {
       setByModel(usage.byModel ?? [])
-      setPeriodTokens(usage.period.tokensUsed)
-      setPeriodRequests(usage.period.requestsUsed)
+      setPeriodTokens(usage.quota?.tokensUsed ?? 0)
+      setPeriodRequests(usage.quota?.requestsUsed ?? 0)
     }
 
     if (canManageBilling) {
@@ -523,7 +523,7 @@ const Billing = () => {
             <div className="mt-5 overflow-hidden rounded-xl border border-neutral-200/80 dark:border-neutral-700">
               {byModel.length === 0 ? (
                 <p className="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                  No model usage this month yet.
+                  No model usage this billing period yet.
                 </p>
               ) : (
                 <table className="min-w-full text-left text-sm">

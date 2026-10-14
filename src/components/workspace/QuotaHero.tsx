@@ -8,12 +8,15 @@ import type {
 import {
   computePaceInsight,
   formatQuotaValue,
+  inactivePlanSentence,
   paceSentence,
   quotaToneClass,
   remainingLabel,
   resolveBindingQuota,
   secondaryResource,
   resourceLabel,
+  windowDayCount,
+  type PeriodBounds,
 } from "../../utils/quota"
 import QuotaPaceChart, { type QuotaPaceSeries } from "./QuotaPaceChart"
 import SegmentedControl from "./SegmentedControl"
@@ -25,15 +28,18 @@ export type QuotaHeroSegment = {
   href?: string
 }
 
-type ChartWindow = "7d" | "14d" | "month"
 type ChartGroupBy = "total" | "project" | "model"
 
 type QuotaHeroProps = {
   plan: UsagePlanSnapshot | null
+  /** Usage in the current billing period (drives remaining quota and pace). */
   requestsUsed: number
   tokensUsed: number
+  /** Selected range shown on the chart. */
+  chartPeriod: PeriodBounds
+  /** Whether the chart range is the current billing period (shows the pace line). */
+  isCurrentPeriod: boolean
   daily: UsageDailyPoint[]
-  paceDaily?: UsageDailyPoint[]
   dailyByProject?: UsageDailySegmentPoint[]
   dailyByModel?: UsageDailySegmentPoint[]
   subline?: string | null
@@ -41,12 +47,6 @@ type QuotaHeroProps = {
   footerSegments?: QuotaHeroSegment[]
   formatSegmentValue?: (value: number) => string
 }
-
-const WINDOW_OPTIONS: { value: ChartWindow; label: string }[] = [
-  { value: "7d", label: "7d" },
-  { value: "14d", label: "14d" },
-  { value: "month", label: "Month" },
-]
 
 const SERIES_OPTIONS: { value: QuotaPaceSeries; label: string }[] = [
   { value: "cumulative", label: "Cumulative" },
@@ -63,15 +63,15 @@ const QuotaHero = ({
   plan,
   requestsUsed,
   tokensUsed,
+  chartPeriod,
+  isCurrentPeriod,
   daily,
-  paceDaily,
   dailyByProject,
   dailyByModel,
   subline,
   footerSegments,
   formatSegmentValue = (v) => v.toLocaleString(),
 }: QuotaHeroProps) => {
-  const [chartWindow, setChartWindow] = useState<ChartWindow>("month")
   const [chartSeries, setChartSeries] = useState<QuotaPaceSeries>("cumulative")
   const [groupBy, setGroupBy] = useState<ChartGroupBy>("total")
 
@@ -82,17 +82,23 @@ const QuotaHero = ({
     tokensUsed,
     plan,
   )
-  const paceSeries = paceDaily ?? daily
-  const pace = computePaceInsight(paceSeries, binding)
-  const sentence = paceSentence(binding, pace)
-  const splitSeries = paceDaily != null && paceDaily !== daily
+  const quotaPeriod =
+    plan?.periodStart && plan.periodEnd
+      ? { periodStart: plan.periodStart, periodEnd: plan.periodEnd }
+      : null
+  const pace = computePaceInsight(binding, quotaPeriod)
+  const sentence = inactivePlanSentence(plan) ?? paceSentence(binding, pace)
+  const showPaceLine = isCurrentPeriod && binding.limit > 0
+  const chartBinding = showPaceLine
+    ? binding
+    : { ...binding, limit: 0, remaining: 0, percentUsed: 0, unlimited: true }
 
   const heroValue = binding.unlimited
     ? formatQuotaValue(binding.resource, binding.used)
     : formatQuotaValue(binding.resource, binding.remaining)
 
   const heroLabel = binding.unlimited
-    ? `${resourceLabel(binding.resource)} this month`
+    ? `${resourceLabel(binding.resource)} this billing period`
     : remainingLabel(binding.resource)
 
   const segmentTotal =
@@ -101,9 +107,6 @@ const QuotaHero = ({
     .slice()
     .sort((a, b) => b.value - a.value)
     .slice(0, 3)
-
-  const windowDays =
-    chartWindow === "7d" ? 7 : chartWindow === "14d" ? 14 : undefined
 
   const breakdown =
     groupBy === "project"
@@ -124,12 +127,14 @@ const QuotaHero = ({
             {plan
               ? [
                   plan.planName,
-                  binding.unlimited
+                  binding.unlimited || !plan.entitled
                     ? null
                     : `Binding ${resourceLabel(binding.resource).toLowerCase()} limit`,
-                  pace.daysLeft > 0
-                    ? `${pace.daysLeft} days left`
-                    : "Last day of month",
+                  !quotaPeriod
+                    ? null
+                    : pace.daysLeft > 1
+                      ? `${pace.daysLeft} days left in billing period`
+                      : "Last day of billing period",
                 ]
                   .filter(Boolean)
                   .join(" · ")
@@ -144,12 +149,6 @@ const QuotaHero = ({
         </div>
         {plan ? (
           <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
-            <SegmentedControl
-              label="Chart time window"
-              options={WINDOW_OPTIONS}
-              value={chartWindow}
-              onChange={setChartWindow}
-            />
             <SegmentedControl
               label="Chart series"
               options={SERIES_OPTIONS}
@@ -174,19 +173,14 @@ const QuotaHero = ({
         <>
           <QuotaPaceChart
             daily={daily}
-            binding={binding}
-            showPaceLine={!splitSeries}
-            windowDays={windowDays}
+            binding={chartBinding}
+            showPaceLine={showPaceLine}
+            totalDays={windowDayCount(chartPeriod)}
+            startDate={chartPeriod.periodStart.slice(0, 10)}
             series={chartSeries}
             breakdown={breakdown}
             className="mt-5 -mx-1"
           />
-          {splitSeries ? (
-            <p className="mt-2 text-[11px] text-neutral-400">
-              Chart shows this project&apos;s burn. Pace reflects the whole
-              workspace.
-            </p>
-          ) : null}
 
           {topSegments.length > 0 && segmentTotal > 0 && groupBy === "total" ? (
             <div className="mt-5 grid gap-3 sm:grid-cols-3">

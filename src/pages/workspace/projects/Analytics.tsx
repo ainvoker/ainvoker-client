@@ -2,7 +2,7 @@ import { useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
-import SegmentedControl from "../../../components/workspace/SegmentedControl"
+import UsageRangePicker from "../../../components/workspace/UsageRangePicker"
 import SparkMetricChip from "../../../components/workspace/SparkMetricChip"
 import ProjectTrafficChart from "../../../components/workspace/ProjectTrafficChart"
 import PeakDayBars from "../../../components/workspace/PeakDayBars"
@@ -11,8 +11,11 @@ import ShareBars from "../../../components/workspace/ShareBars"
 import RecentRequestsTable from "../../../components/workspace/RecentRequestsTable"
 import Skeleton from "../../../components/common/Skeleton"
 import { useAuth } from "../../../contexts/AuthContext"
-import type { AnalyticsRange } from "../../../services/UsageService"
-import { projectAnalyticsQuery } from "../../../utils/queries"
+import type {
+  AnalyticsRange,
+  UsageRangeSelection,
+} from "../../../services/UsageService"
+import { CURRENT_PERIOD, projectAnalyticsQuery } from "../../../utils/queries"
 import {
   formatCompactNumber,
   formatCost,
@@ -20,12 +23,15 @@ import {
   formatTokens,
   successRatePercent,
 } from "../../../utils/requests"
+import { formatWindowLabel } from "../../../utils/quota"
 import { routes } from "../../../utils/navigation"
 
-const RANGE_OPTIONS: { value: AnalyticsRange; label: string }[] = [
-  { value: "billing_month", label: "This month" },
-  { value: "7d", label: "Last 7 days" },
-  { value: "30d", label: "Last 30 days" },
+const RANGE_MODES: AnalyticsRange[] = [
+  "current_period",
+  "7d",
+  "30d",
+  "calendar_month",
+  "custom",
 ]
 
 const AnalyticsSkeleton = () => (
@@ -51,19 +57,11 @@ const AnalyticsSkeleton = () => (
   </div>
 )
 
-const formatRangeStart = (iso: string) =>
-  new Date(iso).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  })
-
 const Analytics = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const { token } = useAuth()
 
-  const [range, setRange] = useState<AnalyticsRange>("billing_month")
+  const [selection, setSelection] = useState<UsageRangeSelection>(CURRENT_PERIOD)
 
   const missingContext = !projectId
     ? "Missing project"
@@ -72,7 +70,7 @@ const Analytics = () => {
       : null
 
   const analyticsQuery = useQuery({
-    ...projectAnalyticsQuery(token ?? "", projectId ?? "", range),
+    ...projectAnalyticsQuery(token ?? "", projectId ?? "", selection),
     enabled: !missingContext,
     placeholderData: (previous) =>
       previous?.project.id === projectId ? previous : undefined,
@@ -137,20 +135,22 @@ const Analytics = () => {
     <WorkspacePage
       title="Analytics"
       description="Traffic, tokens, latency, and cost for this project, broken down by model and API key."
-    >
-      <div className="flex flex-wrap items-center gap-3">
-        <SegmentedControl
-          label="Date range"
-          options={RANGE_OPTIONS}
-          value={range}
-          onChange={setRange}
+      actions={
+        <UsageRangePicker
+          value={selection}
+          onChange={setSelection}
+          availableMonths={data?.availableMonths ?? []}
+          modes={RANGE_MODES}
+          windowLabel={
+            period ? (
+              <p className="text-xs text-neutral-400">
+                {formatWindowLabel(period)} (UTC)
+              </p>
+            ) : null
+          }
         />
-        {period ? (
-          <p className="text-xs text-neutral-400">
-            Since {formatRangeStart(period.periodStart)} (UTC)
-          </p>
-        ) : null}
-      </div>
+      }
+    >
 
       {shownError ? (
         <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400">
@@ -215,7 +215,7 @@ const Analytics = () => {
           <div className="grid gap-3 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <ProjectTrafficChart
-                range={data.range}
+                period={data.period}
                 daily={daily}
                 dailyByModel={data.dailyByModel}
                 dailyByApiKey={data.dailyByApiKey}

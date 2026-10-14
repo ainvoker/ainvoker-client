@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom"
 import type {
-  UsageDailyPoint,
   UsagePeriod,
   UsagePlanSnapshot,
 } from "../../services/UsageService"
 import {
   computePaceInsight,
   formatQuotaValue,
+  inactivePlanSentence,
   isQuotaElevated,
   paceSentence,
   remainingLabel,
@@ -16,8 +16,8 @@ import { routes } from "../../utils/navigation"
 
 type WorkspaceQuotaStripProps = {
   plan: UsagePlanSnapshot | null
+  /** Workspace usage in the current billing period. */
   organizationPeriod: UsagePeriod | null
-  organizationDaily: UsageDailyPoint[]
   /** This project's share of workspace requests (0–100), or null if unknown. */
   projectSharePercent: number | null
 }
@@ -25,23 +25,26 @@ type WorkspaceQuotaStripProps = {
 const WorkspaceQuotaStrip = ({
   plan,
   organizationPeriod,
-  organizationDaily,
   projectSharePercent,
 }: WorkspaceQuotaStripProps) => {
   const requestsUsed = organizationPeriod?.requestsUsed ?? 0
   const tokensUsed = organizationPeriod?.tokensUsed ?? 0
   const binding = resolveBindingQuota(requestsUsed, tokensUsed, plan)
-  const pace = computePaceInsight(organizationDaily, binding)
-  const sentence = paceSentence(binding, pace)
+  const quotaPeriod =
+    plan?.periodStart && plan.periodEnd
+      ? { periodStart: plan.periodStart, periodEnd: plan.periodEnd }
+      : null
+  const pace = computePaceInsight(binding, quotaPeriod)
+  const sentence = inactivePlanSentence(plan) ?? paceSentence(binding, pace)
   const elevated = isQuotaElevated(binding.percentUsed, binding.unlimited)
-  const noPlan = !plan
+  const noPlan = !plan?.entitled
 
   const remainingText = binding.unlimited
     ? formatQuotaValue(binding.resource, binding.used)
     : formatQuotaValue(binding.resource, binding.remaining)
 
   const remainingHint = binding.unlimited
-    ? `${remainingLabel(binding.resource).replace(" remaining", "")} this month`
+    ? `${remainingLabel(binding.resource).replace(" remaining", "")} this billing period`
     : remainingLabel(binding.resource)
 
   const linkTo = noPlan || elevated ? routes.billing : routes.dashboard
@@ -69,9 +72,11 @@ const WorkspaceQuotaStrip = ({
             ) : null}
           </p>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {noPlan
+            {!plan
               ? "No active plan on this workspace"
-              : [
+              : noPlan
+                ? sentence
+                : [
                   sentence,
                   projectSharePercent != null
                     ? `This project is ${projectSharePercent}% of workspace requests`

@@ -58,7 +58,7 @@ const AppSidebar = ({ open, onClose, onOpen }: AppSidebarProps) => {
         queryClient.prefetchQuery(projectModelsQuery(token, projectId)),
       [routes.projectAnalytics(projectId)]: () =>
         queryClient.prefetchQuery(
-          projectAnalyticsQuery(token, projectId, "billing_month"),
+          projectAnalyticsQuery(token, projectId),
         ),
       [routes.projectLogs(projectId)]: () =>
         queryClient.prefetchQuery(

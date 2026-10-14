@@ -1,7 +1,12 @@
 import { useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { HiOutlineCpuChip, HiOutlineMagnifyingGlass, HiOutlinePhoto } from "react-icons/hi2"
+import {
+  HiOutlineCpuChip,
+  HiOutlineLockClosed,
+  HiOutlineMagnifyingGlass,
+  HiOutlinePhoto,
+} from "react-icons/hi2"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import Skeleton from "../../../components/common/Skeleton"
 import { useAuth } from "../../../contexts/AuthContext"
@@ -201,37 +206,50 @@ const Models = () => {
                           </>
                         ) : null}
                       </p>
-                      {model.locked ? (
-                        <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
-                          Locked — not available on your current plan
-                        </p>
-                      ) : null}
                     </div>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={model.enabled}
-                      aria-label={`${model.enabled ? "Disable" : "Enable"} ${model.slug}`}
-                      disabled={toggleDisabled}
-                      onClick={() => void handleToggle(model)}
-                      className={[
-                        "relative h-6 w-11 shrink-0 rounded-full transition-colors",
-                        model.enabled
-                          ? "bg-emerald-500 dark:bg-emerald-600"
-                          : "bg-neutral-200 dark:bg-neutral-700",
-                        toggleDisabled
-                          ? "cursor-not-allowed opacity-50"
-                          : "cursor-pointer",
-                      ].join(" ")}
-                    >
-                      <span
-                        aria-hidden
+                    {model.locked ? (
+                      <span className="group relative flex w-11 shrink-0 justify-center">
+                        <span
+                          tabIndex={0}
+                          aria-label={`${model.slug} is locked — not available on your current plan`}
+                          className="rounded-md p-1 text-neutral-400 outline-none focus-visible:ring-2 focus-visible:ring-accent/40 dark:text-neutral-500"
+                        >
+                          <HiOutlineLockClosed className="size-5" aria-hidden />
+                        </span>
+                        <span
+                          role="tooltip"
+                          className="pointer-events-none absolute top-1/2 right-full z-10 mr-1 w-max -translate-y-1/2 max-w-56 rounded-lg border border-neutral-200/80 bg-white px-2.5 py-1.5 text-xs text-neutral-600 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
+                        >
+                          Not available on your current plan
+                        </span>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={model.enabled}
+                        aria-label={`${model.enabled ? "Disable" : "Enable"} ${model.slug}`}
+                        disabled={toggleDisabled}
+                        onClick={() => void handleToggle(model)}
                         className={[
-                          "absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform",
-                          model.enabled ? "translate-x-5" : "translate-x-0",
+                          "relative h-6 w-11 shrink-0 rounded-full transition-colors",
+                          model.enabled
+                            ? "bg-emerald-500 dark:bg-emerald-600"
+                            : "bg-neutral-200 dark:bg-neutral-700",
+                          toggleDisabled
+                            ? "cursor-not-allowed opacity-50"
+                            : "cursor-pointer",
                         ].join(" ")}
-                      />
-                    </button>
+                      >
+                        <span
+                          aria-hidden
+                          className={[
+                            "absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform",
+                            model.enabled ? "translate-x-5" : "translate-x-0",
+                          ].join(" ")}
+                        />
+                      </button>
+                    )}
                   </li>
                 )
               })}

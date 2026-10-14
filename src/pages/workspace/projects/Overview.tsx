@@ -29,7 +29,7 @@ import {
   isProjectInactive,
   projectStatusBadgeClass,
 } from "../../../utils/projects"
-import type { BindingQuota } from "../../../utils/quota"
+import { windowDayCount, type BindingQuota } from "../../../utils/quota"
 import { routes } from "../../../utils/navigation"
 
 const OverviewSkeleton = () => (
@@ -159,7 +159,6 @@ const Overview = () => {
           <WorkspaceQuotaStrip
             plan={usage?.plan ?? null}
             organizationPeriod={orgPeriod ?? null}
-            organizationDaily={usage?.organizationDaily ?? []}
             projectSharePercent={projectShareOfWorkspace}
           />
 
@@ -179,7 +178,7 @@ const Overview = () => {
                 {formatLatency(period?.avgLatency ?? null)}
               </p>
               <p className="mt-0.5 text-xs text-neutral-400">
-                Successful requests this month
+                Successful requests this billing period
               </p>
             </section>
             <section className="rounded-2xl border border-neutral-200/80 bg-white p-3.5 dark:border-neutral-700 dark:bg-neutral-900">
@@ -199,19 +198,23 @@ const Overview = () => {
             <section className="rounded-2xl border border-neutral-200/80 bg-white p-3.5 dark:border-neutral-700 dark:bg-neutral-900 lg:col-span-3">
               <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between">
                 <h2 className="text-[15px] font-medium text-accent">
-                  Project burn this month
+                  Project burn this billing period
                 </h2>
                 <p className="text-xs tabular-nums text-neutral-400">
                   {formatCompactNumber(period?.requestsUsed ?? 0)} requests ·{" "}
                   {formatTokens(period?.tokensUsed ?? 0)} tokens
                 </p>
               </div>
-              <QuotaPaceChart
-                daily={daily}
-                binding={burnBinding}
-                showPaceLine={false}
-                className="mt-2"
-              />
+              {period ? (
+                <QuotaPaceChart
+                  daily={daily}
+                  binding={burnBinding}
+                  showPaceLine={false}
+                  totalDays={windowDayCount(period)}
+                  startDate={period.periodStart.slice(0, 10)}
+                  className="mt-2"
+                />
+              ) : null}
             </section>
             <PeakDayBars
               daily={daily}

@@ -29,7 +29,7 @@ const DocsLayout = () => {
               <HiOutlineBars3 className="size-5" />
             </button>
             <Link to="/" className="flex items-center gap-2">
-              <img src={Logo} alt="" className="h-5" />
+              <img src={Logo} alt="AInvoker" className="h-5" />
               <span className="text-sm font-semibold tracking-tight">AInvoker</span>
             </Link>
             <span className="hidden text-[#444] sm:inline">/</span>

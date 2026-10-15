@@ -10,11 +10,7 @@ import {
 } from "../../components/docs/DocsPrimitives"
 
 const ApiKeysPage = () => (
-  <DocsArticle
-    slug="api-keys"
-    title="API Keys"
-    description="Project API keys unlock the API. Create them in the dashboard and treat the secret as a password."
-  >
+  <DocsArticle slug="api-keys">
     <H2>Create a key</H2>
     <Ol>
       <li>Open a project in the dashboard.</li>

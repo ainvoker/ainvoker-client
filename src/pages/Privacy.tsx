@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"
 import LegalArticle from "../components/legal/LegalArticle"
 import { H2, P, Ul } from "../components/docs/DocsPrimitives"
+import { SITE_HOST } from "../seo/site"
 import { routes } from "../utils/navigation"
 
 const linkClass = "text-white underline underline-offset-2 hover:text-[#ddd]"
@@ -13,7 +14,7 @@ const Privacy = () => (
   >
     <P>
       This Privacy Policy explains how AInvoker (“AInvoker,” “we,” “us”) handles
-      personal data when you visit ainvoker.com, create an account, or call the
+      personal data when you visit {SITE_HOST}, create an account, or call the
       API. It should be read with our{" "}
       <Link to={routes.terms} className={linkClass}>
         Terms of Service

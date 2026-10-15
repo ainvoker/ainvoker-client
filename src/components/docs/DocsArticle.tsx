@@ -1,22 +1,29 @@
 import { Link } from "react-router-dom"
-import { getDocsPrevNext } from "../../docs/nav"
+import { getDocsNavItem, getDocsPrevNext } from "../../docs/nav"
 
 type DocsArticleProps = {
   slug: string
-  title: string
+  /** Override nav title when the page H1 should differ (e.g. "SDK Overview"). */
+  title?: string
+  /** Override nav description when needed. */
   description?: string
   children: React.ReactNode
 }
 
 const DocsArticle = ({ slug, title, description, children }: DocsArticleProps) => {
+  const navItem = getDocsNavItem(slug)
+  const resolvedTitle = title ?? navItem?.title ?? slug
+  const resolvedDescription = description ?? navItem?.description
   const { prev, next } = getDocsPrevNext(slug)
 
   return (
     <article className="mx-auto max-w-3xl">
       <header className="mb-10 border-b border-[#222] pb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">{title}</h1>
-        {description ? (
-          <p className="mt-3 text-lg leading-relaxed text-[#aaa]">{description}</p>
+        <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+          {resolvedTitle}
+        </h1>
+        {resolvedDescription ? (
+          <p className="mt-3 text-lg leading-relaxed text-[#aaa]">{resolvedDescription}</p>
         ) : null}
       </header>
 

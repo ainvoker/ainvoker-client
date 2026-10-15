@@ -10,11 +10,7 @@ import {
 } from "../../components/docs/DocsPrimitives"
 
 const Limits = () => (
-  <DocsArticle
-    slug="limits"
-    title="Limits"
-    description="Request and token quotas apply per workspace plan and reset each billing period."
-  >
+  <DocsArticle slug="limits">
     <H2>How limits work</H2>
     <P>
       Usage is tracked per organization for the current billing period. A period starts when

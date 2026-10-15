@@ -54,11 +54,7 @@ const result = await ai.image.generate({
 await writeFile("puppy.png", Buffer.from(result.image.base64, "base64"))`
 
 const ImageGenerate = () => (
-  <DocsArticle
-    slug="image-generate"
-    title="Image Generation"
-    description="Generate images from a text prompt."
-  >
+  <DocsArticle slug="image-generate">
     <H2>Endpoint</H2>
     <P>
       <InlineCode>POST /v1/image/generate</InlineCode>

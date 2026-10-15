@@ -38,11 +38,7 @@ const streamExample = `for await (const event of ai.text.stream({
 }`
 
 const SdkNodejs = () => (
-  <DocsArticle
-    slug="sdk/nodejs"
-    title="Node.js Usage"
-    description="Use the official SDK from Node.js 18+ with an environment-backed API key."
-  >
+  <DocsArticle slug="sdk/nodejs" title="Node.js Usage">
     <H2>Requirements</H2>
     <Ul>
       <li>Node.js 18 or newer</li>

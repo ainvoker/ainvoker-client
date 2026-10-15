@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"
 import LegalArticle from "../components/legal/LegalArticle"
 import { H2, P, Ul } from "../components/docs/DocsPrimitives"
+import { SITE_HOST } from "../seo/site"
 import { routes } from "../utils/navigation"
 
 const linkClass = "text-white underline underline-offset-2 hover:text-[#ddd]"
@@ -13,7 +14,7 @@ const Terms = () => (
   >
     <P>
       These Terms of Service (“Terms”) are an agreement between you and AInvoker
-      (“AInvoker,” “we,” “us”) for use of ainvoker.com, the dashboard, the HTTP
+      (“AInvoker,” “we,” “us”) for use of {SITE_HOST}, the dashboard, the HTTP
       API, SDKs, and related services (the “Service”). By creating an account,
       clicking accept, or using the Service, you agree to these Terms and to our{" "}
       <Link to={routes.privacy} className={linkClass}>

@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Allow: /docs/
+Allow: /terms
+Allow: /privacy
+
+Disallow: /projects
+Disallow: /settings
+Disallow: /login
+Disallow: /signup
+Disallow: /verify-email
+Disallow: /verify-reset-password
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /invites/
+Disallow: /billing
+Disallow: /team
+
+Sitemap: https://app.ainvoker.dev/sitemap.xml

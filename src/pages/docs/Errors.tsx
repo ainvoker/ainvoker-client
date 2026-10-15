@@ -15,11 +15,7 @@ const errorExample = `{
 }`
 
 const Errors = () => (
-  <DocsArticle
-    slug="errors"
-    title="Errors"
-    description="API failures use a consistent JSON format. Success responses wrap the result in data."
-  >
+  <DocsArticle slug="errors">
     <H2>Error format</H2>
     <CodeBlock code={errorExample} language="json" title="Error" />
     <P>

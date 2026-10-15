@@ -43,11 +43,7 @@ const streamExample = `for await (const event of ai.text.stream({
 }`
 
 const SdkOverview = () => (
-  <DocsArticle
-    slug="sdk"
-    title="SDK Overview"
-    description="The official TypeScript/JavaScript package for the AInvoker API."
-  >
+  <DocsArticle slug="sdk" title="SDK Overview">
     <H2>Install</H2>
     <CodeBlock code={installExample} language="bash" title="npm" />
     <P>

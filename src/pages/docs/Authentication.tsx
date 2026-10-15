@@ -12,11 +12,7 @@ import {
 const headerExample = `Authorization: Bearer ain_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 
 const Authentication = () => (
-  <DocsArticle
-    slug="authentication"
-    title="Authentication"
-    description="API requests authenticate with a project API key."
-  >
+  <DocsArticle slug="authentication">
     <H2>API keys</H2>
     <P>
       Every request to the AInvoker API requires a project API key in the Authorization header:

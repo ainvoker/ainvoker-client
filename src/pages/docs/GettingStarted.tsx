@@ -42,11 +42,7 @@ const streamExample = `for await (const event of ai.text.stream({
 }`
 
 const GettingStarted = () => (
-  <DocsArticle
-    slug="getting-started"
-    title="Getting Started"
-    description="Create an account, grab a project API key, and make your first text chat request."
-  >
+  <DocsArticle slug="getting-started">
     <P>
       AInvoker is an AI gateway. You call one HTTP API (or the official{" "}
       <InlineCode>ainvoker</InlineCode> SDK) and get a unified interface across providers like

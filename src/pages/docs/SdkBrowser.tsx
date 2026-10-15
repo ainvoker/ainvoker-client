@@ -20,11 +20,7 @@ const res = await fetch("/api/chat", {
 const { reply } = await res.json()`
 
 const SdkBrowser = () => (
-  <DocsArticle
-    slug="sdk/browser"
-    title="Browser Usage"
-    description="Prefer a backend proxy. Direct browser calls need an allowed app URL."
-  >
+  <DocsArticle slug="sdk/browser" title="Browser Usage">
     <Callout title="Do not put API keys in the browser" variant="warning">
       Anyone can extract secrets from client bundles. Use a backend or serverless function that
       holds the key and calls AInvoker for you. That is the supported production pattern.

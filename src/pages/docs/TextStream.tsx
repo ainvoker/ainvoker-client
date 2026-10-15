@@ -107,11 +107,7 @@ try {
 }`
 
 const TextStream = () => (
-  <DocsArticle
-    slug="text-stream"
-    title="Text Stream"
-    description="Stream an assistant reply over Server-Sent Events with the same models and gates as chat."
-  >
+  <DocsArticle slug="text-stream">
     <H2>Endpoint</H2>
     <P>
       <InlineCode>POST /v1/text/stream</InlineCode>

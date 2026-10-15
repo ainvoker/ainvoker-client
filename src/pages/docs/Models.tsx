@@ -10,11 +10,7 @@ import {
 } from "../../components/docs/DocsPrimitives"
 
 const ModelsPage = () => (
-  <DocsArticle
-    slug="models"
-    title="Models"
-    description="Pass a provider/model slug on every chat request. Free plans can only use models available on Free."
-  >
+  <DocsArticle slug="models">
     <H2>Slug format</H2>
     <P>
       On the HTTP API, set <InlineCode>model</InlineCode> to{" "}

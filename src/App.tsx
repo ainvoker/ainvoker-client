@@ -2,6 +2,7 @@ import { lazy } from "react"
 import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom"
 
 import { RouteErrorBoundary } from "./components/common/ErrorBoundary"
+import SeoManager from "./components/seo/SeoManager"
 import { AuthProvider } from "./contexts/AuthContext"
 import { ThemeProvider } from "./contexts/ThemeContext"
 import { WorkspaceProvider } from "./contexts/WorkspaceContext"
@@ -59,6 +60,7 @@ function App() {
       <AuthProvider>
         <ThemeProvider>
           <BrowserRouter>
+            <SeoManager />
             {/*
               Root boundary sits under the router so it can reset on pathname,
               and under Auth/Theme so a page crash does not remount those providers.

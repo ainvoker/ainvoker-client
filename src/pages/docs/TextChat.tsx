@@ -162,11 +162,7 @@ const setThemeAction = ai.action.define({
 })`
 
 const TextChat = () => (
-  <DocsArticle
-    slug="text-chat"
-    title="Text Chat"
-    description="Send a conversation and receive a complete assistant reply."
-  >
+  <DocsArticle slug="text-chat">
     <H2>Endpoint</H2>
     <P>
       <InlineCode>POST /v1/text/chat</InlineCode>

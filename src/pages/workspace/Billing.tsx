@@ -9,6 +9,7 @@ import { useWorkspace } from "../../contexts/WorkspaceContext"
 import BillingService, {
   type InvoiceItem,
   type OrgSubscription,
+  type ScaleUpgradePreview,
 } from "../../services/BillingService"
 import UsageService, { type OrgUsageByModel } from "../../services/UsageService"
 import { formatCompactNumber, formatTokens } from "../../utils/requests"
@@ -36,9 +37,9 @@ const plans: PlanCard[] = [
     summary: "Personal workspace only — enough to try the gateway.",
     features: [
       "Personal workspace only (Free cannot be used on extra orgs)",
-      "50k tokens / 300 requests per month",
-      "Cheap models only (freeEligible)",
-      "Hard stop at monthly caps",
+      "50k lifetime usage units + 300 requests per month",
+      "Economy models only",
+      "Hard stop at caps",
     ],
     cta: "Current baseline",
     ctaDisabled: true,
@@ -46,15 +47,14 @@ const plans: PlanCard[] = [
   {
     id: "pro",
     name: "Pro",
-    price: "₱1,099",
+    price: "₱499",
     priceNote: " / month",
     badge: "Auto-renews",
     summary:
-      "Indie and student plan with included limits per organization. Billed monthly via Xendit until you cancel.",
+      "Indie and student plan with included usage per organization. Billed monthly via Xendit until you cancel.",
     features: [
       "Unlimited additional orgs (each on its own plan)",
-      "2M tokens / 5k requests per org per month",
-      "All catalog models",
+      "1M usage units per org per month (economy models)",
       "Hard stop at cap (no overage)",
     ],
     cta: "Upgrade to Pro",
@@ -63,18 +63,16 @@ const plans: PlanCard[] = [
   {
     id: "scale",
     name: "Scale",
-    price: "Custom",
-    priceNote: " · metered",
+    price: "₱499",
+    priceNote: " wallet advance · metered",
     badge: "Usage-based",
-    summary: "Metered pricing for teams that need headroom.",
+    summary: "Metered retail usage with a prepaid wallet and saved payment method.",
     features: [
       "Unlimited additional orgs (each on its own plan)",
-      "Usage-based / contact sales",
       "All catalog models",
-      "Optional safety ceilings when configured",
+      "Monthly wallet settlement; top-up when usage exceeds balance",
     ],
-    cta: "Contact sales",
-    ctaDisabled: true,
+    cta: "Upgrade to Scale",
   },
 ]
 
@@ -139,6 +137,7 @@ const Billing = () => {
   const [cancelError, setCancelError] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [pageLoading, setPageLoading] = useState(true)
+  const [scalePreview, setScalePreview] = useState<ScaleUpgradePreview | null>(null)
 
   const canManageBilling = role === "owner" || role === "admin"
 
@@ -156,6 +155,16 @@ const Billing = () => {
     )
     if (sub) setSubscription(sub)
     if (subErr) setLoadError(subErr.message)
+
+    if (canManageBilling && sub?.planName === "pro") {
+      const [preview] = await BillingService.getScaleUpgradePreview(
+        token,
+        activeOrganizationId,
+      )
+      setScalePreview(preview?.hasActivePro ? preview : null)
+    } else {
+      setScalePreview(null)
+    }
 
     const [usage] = await UsageService.getOrganizationUsage(
       token,
@@ -203,6 +212,13 @@ const Billing = () => {
   const isProPending =
     subscription?.pendingPlanName === "pro" ||
     (subscription?.planName === "pro" && subscription.status === "PENDING")
+  const isScaleActive =
+    subscription?.planName === "scale" &&
+    (subscription.status === "ACTIVE" || subscription.status === "PAST_DUE") &&
+    !isExpiredPeriod
+  const isScalePending =
+    subscription?.pendingPlanName === "scale" ||
+    (subscription?.planName === "scale" && subscription.status === "PENDING")
   const isProExpired =
     subscription?.planName === "pro" &&
     (subscription.status === "EXPIRED" ||
@@ -216,7 +232,12 @@ const Billing = () => {
 
   const goToProCheckout = useCallback(() => {
     if (!activeOrganizationId || isLoading) return
-    navigate(routes.billingCheckout(activeOrganizationId))
+    navigate(routes.billingCheckout(activeOrganizationId, "pro"))
+  }, [activeOrganizationId, isLoading, navigate])
+
+  const goToScaleCheckout = useCallback(() => {
+    if (!activeOrganizationId || isLoading) return
+    navigate(routes.billingCheckout(activeOrganizationId, "scale"))
   }, [activeOrganizationId, isLoading, navigate])
 
   const handleCancel = useCallback(async () => {
@@ -326,6 +347,22 @@ const Billing = () => {
                         billing period.
                       </p>
                     ) : null}
+                    {isProActive && isScalePending ? (
+                      <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                        Scale upgrade awaiting payment. Pro limits and economy
+                        models apply until you complete it.
+                      </p>
+                    ) : null}
+                    {isScaleActive &&
+                    subscription.scaleWalletBalanceCentavos !== undefined ? (
+                      <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                        Wallet balance:{" "}
+                        {formatAmount(
+                          String(subscription.scaleWalletBalanceCentavos / 100),
+                          "PHP",
+                        )}
+                      </p>
+                    ) : null}
                   </>
                 ) : (
                   <InlineLoader label="Loading plan…" className="mt-3" />
@@ -386,12 +423,27 @@ const Billing = () => {
                         </li>
                       ))}
                     </ul>
+                    {plan.id === "scale" && scalePreview && !isScaleActive ? (
+                      <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+                        Upgrading from Pro: pay{" "}
+                        {formatAmount(String(scalePreview.advancePhp), "PHP")} now
+                        and get{" "}
+                        {formatAmount(String(scalePreview.proCreditPhp), "PHP")} credit
+                        for unused Pro time. Your Scale wallet starts at{" "}
+                        {formatAmount(String(scalePreview.totalWalletCreditPhp), "PHP")}.
+                        Pro billing stops once Scale is active.
+                      </p>
+                    ) : null}
                     <div className="mt-4">
                       {plan.id === "pro" ? (
                         <Button
                           type="button"
                           disabled={
-                            isProActive || !activeOrganizationId || isLoading
+                            isProActive ||
+                            isScaleActive ||
+                            isScalePending ||
+                            !activeOrganizationId ||
+                            isLoading
                           }
                           onClick={goToProCheckout}
                           className="w-full !py-2 text-sm"
@@ -403,6 +455,23 @@ const Billing = () => {
                               : isProExpired
                                 ? "Resubscribe to Pro"
                                 : plan.cta}
+                        </Button>
+                      ) : plan.id === "scale" ? (
+                        <Button
+                          type="button"
+                          disabled={
+                            isScaleActive || !activeOrganizationId || isLoading
+                          }
+                          onClick={goToScaleCheckout}
+                          className="w-full !py-2 text-sm"
+                        >
+                          {isScaleActive
+                            ? "Current plan"
+                            : isScalePending
+                              ? isProActive
+                                ? "Complete Scale upgrade"
+                                : "Complete payment"
+                              : plan.cta}
                         </Button>
                       ) : (
                         <Button
@@ -696,7 +765,7 @@ const Billing = () => {
           ) : null}
 
           <p className="text-xs text-neutral-400 dark:text-neutral-500">
-            Pro is ₱1,099 per month and auto-renews via Xendit until canceled.
+            Pro is ₱499 per month and auto-renews via Xendit until canceled.
             Entitlements update after Xendit confirms payment.
           </p>
             </>

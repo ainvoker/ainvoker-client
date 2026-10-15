@@ -27,26 +27,17 @@ const ModelsPage = () => (
 
     <H2>Available models</H2>
     <DocsTable
-      headers={["Slug", "Provider", "Context window", "Available on Free"]}
+      headers={["Slug", "Provider", "Context window", "Tier", "Plans"]}
       rows={[
-        [
-          <InlineCode>openai/gpt-4o-mini</InlineCode>,
-          "OpenAI",
-          "128,000",
-          "Yes",
-        ],
-        [
-          <InlineCode>gemini/gemini-3.6-flash</InlineCode>,
-          "Gemini",
-          "1,048,576",
-          "Yes",
-        ],
-        [
-          <InlineCode>gemini/gemini-3.5-flash-lite</InlineCode>,
-          "Gemini",
-          "1,048,576",
-          "Yes",
-        ],
+        [<InlineCode>openai/gpt-4o-mini</InlineCode>, "OpenAI", "128,000", "Economy", "All"],
+        [<InlineCode>openai/gpt-6-luna</InlineCode>, "OpenAI", "1,050,000", "Economy", "Pro, Scale"],
+        [<InlineCode>openai/gpt-6.1-sol</InlineCode>, "OpenAI", "1,050,000", "Premium", "Pro, Scale"],
+        [<InlineCode>openai/gpt-6-astra</InlineCode>, "OpenAI", "1,050,000", "Premium", "Pro, Scale"],
+        [<InlineCode>gemini/gemini-3.5-flash-lite</InlineCode>, "Gemini", "1,048,576", "Economy", "All"],
+        [<InlineCode>gemini/gemini-3.6-flash</InlineCode>, "Gemini", "1,048,576", "Economy", "All"],
+        [<InlineCode>gemini/gemini-3.8-flash</InlineCode>, "Gemini", "1,048,576", "Economy", "All"],
+        [<InlineCode>gemini/gemini-3.1-pro-preview</InlineCode>, "Gemini", "1,048,576", "Premium", "Pro, Scale"],
+        [<InlineCode>gemini/gemini-4-argon</InlineCode>, "Gemini", "1,048,576", "Premium", "Pro, Scale"],
       ]}
     />
     <P>
@@ -54,12 +45,16 @@ const ModelsPage = () => (
       <Link to="/docs/image-generate" className="text-white underline underline-offset-2 hover:text-[#ddd]">
         Image Generation
       </Link>
-      :
+. Image models are available on Pro and Scale.
     </P>
     <DocsTable
-      headers={["Slug", "Provider", "Available on Free"]}
+      headers={["Slug", "Provider", "Tier", "Plans"]}
       rows={[
-        [<InlineCode>openai/gpt-image-2.5-flare</InlineCode>, "OpenAI", "No"],
+        [<InlineCode>openai/gpt-image-2.5-flare</InlineCode>, "OpenAI", "Premium", "Pro, Scale"],
+        [<InlineCode>openai/gpt-image-2.5-sunburst</InlineCode>, "OpenAI", "Premium", "Pro, Scale"],
+        [<InlineCode>gemini/gemini-3.1-flash-lite-image</InlineCode>, "Gemini", "Premium", "Pro, Scale"],
+        [<InlineCode>gemini/gemini-nano-banana-2.1</InlineCode>, "Gemini", "Premium", "Pro, Scale"],
+        [<InlineCode>gemini/gemini-3-pro-image</InlineCode>, "Gemini", "Premium", "Pro, Scale"],
       ]}
     />
     <P>
@@ -74,12 +69,16 @@ const ModelsPage = () => (
       </li>
       <li>
         <strong className="text-white">Pro</strong> and <strong className="text-white">Scale</strong>{" "}
-        — all models in the catalog.
+        — every model in the catalog, including premium text models and all image models.
+      </li>
+      <li>
+        Premium models cost more per token, so on Pro they use up your monthly token allowance
+        faster than economy models.
       </li>
       <li>
         Each project has an allowlist under <strong className="text-white">Models</strong>. A
         disabled model returns <InlineCode>403 MODEL_DISABLED</InlineCode> even when the plan
-        allows it.
+        allows it. Premium models start disabled; an owner or admin turns them on per project.
       </li>
     </Ul>
     <Callout title="More models over time">

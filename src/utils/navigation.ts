@@ -38,7 +38,7 @@ export const routes = {
   settingsGeneral: "/settings/general",
   settingsTeam: "/settings/team",
   settingsBilling: "/settings/billing",
-  settingsBillingCheckout: (orgId: string, plan: "pro" = "pro") =>
+  settingsBillingCheckout: (orgId: string, plan: "pro" | "scale" = "pro") =>
     `/settings/billing/checkout?orgId=${encodeURIComponent(orgId)}&plan=${plan}`,
   settingsProfile: "/settings/profile",
   settingsAppearance: "/settings/appearance",
@@ -46,7 +46,7 @@ export const routes = {
   inviteAccept: "/invites/accept",
   /** @deprecated Use settingsBilling — kept as alias for redirects */
   billing: "/settings/billing",
-  billingCheckout: (orgId: string, plan: "pro" = "pro") =>
+  billingCheckout: (orgId: string, plan: "pro" | "scale" = "pro") =>
     `/settings/billing/checkout?orgId=${encodeURIComponent(orgId)}&plan=${plan}`,
   /** @deprecated Use settingsTeam */
   team: "/settings/team",

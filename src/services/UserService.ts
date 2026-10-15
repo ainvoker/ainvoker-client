@@ -38,6 +38,7 @@ export type AppMembership = {
 export type BootstrapResult = {
     user: AppUser;
     memberships: AppMembership[];
+    isPlatformAdmin?: boolean;
 };
 
 export type UpdateProfileInput = {

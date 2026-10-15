@@ -69,9 +69,26 @@ const ImageGenerate = () => (
     </P>
     <Callout title="Pro and Scale only">
       Image models are not available on the Free plan and return{" "}
-      <InlineCode>403 MODEL_NOT_ALLOWED_ON_PLAN</InlineCode>. Upstream providers do not offer free
-      image generation through their APIs.
+      <InlineCode>403 MODEL_NOT_ALLOWED_ON_PLAN</InlineCode>.
     </Callout>
+
+    <H2>Models</H2>
+    <DocsTable
+      headers={["Slug", "Provider", "Notes"]}
+      rows={[
+        [<InlineCode>openai/gpt-image-2.5-flare</InlineCode>, "OpenAI", "Fast, everyday generation"],
+        [<InlineCode>openai/gpt-image-2.5-sunburst</InlineCode>, "OpenAI", "Highest quality and detail"],
+        [<InlineCode>gemini/gemini-3.1-flash-lite-image</InlineCode>, "Gemini", "Lowest latency, 1K output"],
+        [<InlineCode>gemini/gemini-nano-banana-2.1</InlineCode>, "Gemini", "Balanced speed and quality"],
+        [<InlineCode>gemini/gemini-3-pro-image</InlineCode>, "Gemini", "Studio quality, complex layouts and text"],
+      ]}
+    />
+    <P>
+      <InlineCode>size</InlineCode>, <InlineCode>quality</InlineCode>, and{" "}
+      <InlineCode>outputFormat</InlineCode> apply to OpenAI models only. Gemini models ignore them
+      and return their default resolution and format; <InlineCode>mimeType</InlineCode> on each
+      image tells you what you got.
+    </P>
 
     <H2>Request</H2>
     <CodeBlock code={requestExample} language="http" title="Request" />
@@ -84,7 +101,8 @@ const ImageGenerate = () => (
           "Yes",
           <>
             Format: <InlineCode>provider/model</InlineCode>, for example{" "}
-            <InlineCode>openai/gpt-image-2.5-flare</InlineCode>.
+            <InlineCode>openai/gpt-image-2.5-flare</InlineCode> or{" "}
+            <InlineCode>gemini/gemini-nano-banana-2.1</InlineCode>.
           </>,
         ],
         [<InlineCode>prompt</InlineCode>, "string", "Yes", "What to draw. Up to 32,000 characters."],

@@ -46,7 +46,7 @@ const BillingCheckout = () => {
   useEffect(() => {
     if (authLoading) return
 
-    if (!token || !orgId || plan !== "pro") {
+    if (!token || !orgId || (plan !== "pro" && plan !== "scale")) {
       setError("Missing checkout context")
       return
     }
@@ -61,8 +61,9 @@ const BillingCheckout = () => {
         return
       }
 
+      const checkoutPlan = plan === "scale" ? "scale" : "pro"
       const [session, err] = await BillingService.createCheckoutSession(token, orgId, {
-        plan: "pro",
+        plan: checkoutPlan,
         returnUrl,
       })
       if (err || !session) {
@@ -106,9 +107,13 @@ const BillingCheckout = () => {
       <WorkspacePage
         title="Complete payment"
         description={
-          checkoutOrg
-            ? `Subscribe to Pro on ${checkoutOrg.name} for ₱1,099 / month. Auto-renews until you cancel.`
-            : "Subscribe to Pro for ₱1,099 / month. Auto-renews until you cancel."
+          plan === "scale"
+            ? checkoutOrg
+              ? `Fund Scale on ${checkoutOrg.name} with a ₱499 wallet advance and save your payment method.`
+              : "Fund Scale with a ₱499 wallet advance and save your payment method."
+            : checkoutOrg
+              ? `Subscribe to Pro on ${checkoutOrg.name} for ₱499 / month. Auto-renews until you cancel.`
+              : "Subscribe to Pro for ₱499 / month. Auto-renews until you cancel."
         }
       >
         {completed ? (

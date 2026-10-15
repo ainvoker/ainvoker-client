@@ -21,6 +21,14 @@ export type OrgSubscription = {
     cancelAtPeriodEnd?: boolean;
     canceledAt?: string | null;
     paymentMethod?: PaymentMethodSnapshot | null;
+    scaleWalletBalanceCentavos?: number;
+};
+
+export type ScaleUpgradePreview = {
+    hasActivePro: boolean;
+    proCreditPhp: number;
+    advancePhp: number;
+    totalWalletCreditPhp: number;
 };
 
 export type CheckoutSession = {
@@ -81,6 +89,23 @@ class BillingService extends Service {
         );
     }
 
+    async getScaleUpgradePreview(
+        token: string,
+        organizationId: string,
+    ): Promise<[ScaleUpgradePreview | null, ApiErrorInfo | undefined]> {
+        if (!API_URL) {
+            return [null, { status: 0, message: "VITE_API_URL is not configured" }];
+        }
+
+        return this.requestDetailed<ScaleUpgradePreview>(
+            `${API_URL}/api/v1/organizations/${organizationId}/subscription/scale-upgrade-preview`,
+            {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}` },
+            },
+        );
+    }
+
     async cancelSubscription(
         token: string,
         organizationId: string,
@@ -105,7 +130,7 @@ class BillingService extends Service {
     async createCheckoutSession(
         token: string,
         organizationId: string,
-        input: { plan: "pro"; returnUrl?: string },
+        input: { plan: "pro" | "scale"; returnUrl?: string },
     ): Promise<[CheckoutSession | null, ApiErrorInfo | undefined]> {
         if (!API_URL) {
             return [null, { status: 0, message: "VITE_API_URL is not configured" }];

@@ -125,18 +125,30 @@ const Terms = () => (
     <Ul>
       <li>
         <strong className="text-white">Free</strong> applies to your Personal
-        workspace only: 300 requests and 50,000 tokens per calendar month (UTC),
-        limited to free-eligible models. Extra organizations cannot run on Free.
+        workspace only: a lifetime usage allowance (currently 50,000 weighted
+        usage units), 300 requests per billing month, and economy models only.
+        Extra organizations cannot run on Free.
       </li>
       <li>
-        <strong className="text-white">Pro</strong> is ₱1,099 per month per
+        <strong className="text-white">Pro</strong> is ₱499 per month per
         workspace, billed through Xendit. It auto-renews each month until you
         cancel. When you cancel, future charges stop and you keep Pro until the
-        end of the paid period.
+        end of the paid period. Pro includes economy models and a monthly usage
+        allowance (currently 1,000,000 weighted usage units).
       </li>
       <li>
-        <strong className="text-white">Scale</strong> is usage-based and
-        arranged with us separately.
+        <strong className="text-white">Scale</strong> is metered at retail
+        prices with a prepaid wallet (₱499 advance at signup, configurable by
+        us). Usage draws the wallet each billing period; if usage exceeds the
+        wallet, we charge your saved payment method for the excess plus a wallet
+        refresh. Scale includes all catalog models.
+      </li>
+      <li>
+        Upgrading a workspace from Pro to Scale ends Pro and stops its
+        recurring charge once the Scale payment succeeds, so you are not billed
+        for both plans. The unused share of your current Pro period is added to
+        the Scale wallet as credit. This credit is not refunded to your card
+        and cannot be withdrawn as cash.
       </li>
       <li>
         Billing and usage are tracked per organization. Hitting a monthly cap

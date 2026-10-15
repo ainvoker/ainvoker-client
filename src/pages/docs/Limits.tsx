@@ -44,7 +44,7 @@ const Limits = () => (
     <DocsTable
       headers={["Plan", "Requests / period", "Tokens / period", "Models"]}
       rows={[
-        ["Free", "300", "50,000", "Free-tier models only"],
+        ["Free", "300", "50,000", "Models marked available on Free"],
         ["Pro", "5,000", "2,000,000", "All models"],
         ["Scale", "Custom / metered", "Custom / metered", "All models"],
       ]}

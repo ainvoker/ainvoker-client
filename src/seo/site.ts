@@ -8,6 +8,11 @@ export const SITE_NAME = "AInvoker"
 
 export const DEFAULT_OG_IMAGE_PATH = "/og-default.jpg"
 
+export const DEFAULT_OG_IMAGE_WIDTH = 1200
+export const DEFAULT_OG_IMAGE_HEIGHT = 630
+export const DEFAULT_OG_IMAGE_ALT =
+  "AInvoker — centralized AI access and management gateway"
+
 export function getSiteUrl(): string {
   const fromEnv = import.meta.env.VITE_SITE_URL as string | undefined
   const raw = (fromEnv?.trim() || DEFAULT_SITE_URL).replace(/\/+$/, "")

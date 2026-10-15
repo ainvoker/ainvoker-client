@@ -1,5 +1,13 @@
 import { useEffect } from "react"
-import { absoluteAssetUrl, absoluteUrl, DEFAULT_OG_IMAGE_PATH, SITE_NAME } from "./site"
+import {
+  absoluteAssetUrl,
+  absoluteUrl,
+  DEFAULT_OG_IMAGE_ALT,
+  DEFAULT_OG_IMAGE_HEIGHT,
+  DEFAULT_OG_IMAGE_PATH,
+  DEFAULT_OG_IMAGE_WIDTH,
+  SITE_NAME,
+} from "./site"
 
 export type SeoConfig = {
   title: string
@@ -85,11 +93,15 @@ export function applyPageSeo(config: SeoConfig): void {
   upsertMeta("property", "og:description", description)
   upsertMeta("property", "og:site_name", SITE_NAME)
   upsertMeta("property", "og:image", image)
+  upsertMeta("property", "og:image:width", String(DEFAULT_OG_IMAGE_WIDTH))
+  upsertMeta("property", "og:image:height", String(DEFAULT_OG_IMAGE_HEIGHT))
+  upsertMeta("property", "og:image:alt", DEFAULT_OG_IMAGE_ALT)
 
   upsertMeta("name", "twitter:card", "summary_large_image")
   upsertMeta("name", "twitter:title", title)
   upsertMeta("name", "twitter:description", description)
   upsertMeta("name", "twitter:image", image)
+  upsertMeta("name", "twitter:image:alt", DEFAULT_OG_IMAGE_ALT)
 
   if (jsonLd) {
     upsertJsonLd(jsonLd)

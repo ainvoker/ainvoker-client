@@ -1,0 +1,41 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#050505"/>
+      <stop offset="0.55" stop-color="#0a0a0a"/>
+      <stop offset="1" stop-color="#111111"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(420 315) rotate(90) scale(380 520)">
+      <stop stop-color="#EEEEEE" stop-opacity="0.07"/>
+      <stop offset="1" stop-color="#EEEEEE" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mark-a" x1="149.122" y1="0" x2="149.122" y2="225.435" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#222222"/>
+      <stop offset="1" stop-color="#EEEEEE"/>
+    </linearGradient>
+    <linearGradient id="mark-b" x1="149.122" y1="0" x2="149.122" y2="225.435" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EEEEEE"/>
+      <stop offset="1" stop-color="#222222"/>
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect x="1" y="1" width="1198" height="628" rx="24" stroke="#ffffff" stroke-opacity="0.06"/>
+
+  <g transform="translate(120 168) scale(1.35)">
+    <path d="M85.6783 9.09214C84.2471 3.87138 79.4831 0.284752 73.808 0.284752C68.065 0.284752 63.2245 3.9638 61.8576 9.28027V9.27548L4 225.203H77.7256L110.657 102.303L85.6783 9.08303V9.09214Z" fill="url(#mark-a)"/>
+    <path d="M215.518 218.524C217.165 222.062 220.443 224.688 224.386 225.435C230.216 225.435 235.105 221.366 236.386 215.928L294.243 0L220.307 2.63576e-05L188.636 118.199L215.518 218.524Z" fill="url(#mark-b)"/>
+    <path d="M150.45 225.435H224.386C220.443 224.688 217.165 222.062 215.518 218.524L188.636 118.199L159.518 9.53054L159.53 9.59392C158.276 4.11905 153.374 0.0350853 147.519 0.0350853L73.808 0.284752C79.4831 0.284752 84.2471 3.87138 85.6783 9.09214V9.08303L110.657 102.303L142.032 219.399C143.786 222.492 146.839 224.751 150.45 225.435Z" fill="#EEEEEE"/>
+  </g>
+
+  <text x="520" y="280" fill="#f4f4f5" font-family="Segoe UI, system-ui, sans-serif" font-size="72" font-weight="600" letter-spacing="-1.5">AInvoker</text>
+  <text x="520" y="348" fill="#a3a3a3" font-family="Segoe UI, system-ui, sans-serif" font-size="28" font-weight="400">Centralized AI access &amp; management</text>
+  <text x="520" y="400" fill="#737373" font-family="Segoe UI, system-ui, sans-serif" font-size="22" font-weight="400">Unified gateway &#183; API keys &#183; usage &amp; audit</text>
+
+  <rect x="520" y="438" width="132" height="3" rx="1.5" fill="url(#mark-b)"/>
+  <text x="120" y="582" fill="#525252" font-family="Segoe UI, system-ui, sans-serif" font-size="18" font-weight="500" letter-spacing="0.08em">APP.AINVOKER.DEV</text>
+</svg>

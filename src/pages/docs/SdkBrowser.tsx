@@ -49,13 +49,16 @@ const SdkBrowser = () => (
       If you still call the gateway from the browser, add your app origin under{" "}
       <strong className="text-white">Project → Settings → Allowed app URLs</strong> (exact scheme +
       host + port, for example <InlineCode>http://localhost:5173</InlineCode> or{" "}
-      <InlineCode>https://app.example.com</InlineCode>). Until that list includes your origin,
-      browser requests are blocked by CORS. Node / server SDK calls have no{" "}
-      <InlineCode>Origin</InlineCode> header and do not need an entry.
+      <InlineCode>https://app.example.com</InlineCode>), then create a key with{" "}
+      <strong className="text-white">Browser</strong> selected. Until the list includes your
+      origin, browser requests are blocked by CORS. Server keys are rejected whenever an{" "}
+      <InlineCode>Origin</InlineCode> header is present, and browser keys are rejected without
+      one.
     </P>
     <P>
-      Origin allowlisting only stops other websites from using your key in a browser. It does not
-      hide an <InlineCode>ain_</InlineCode> key shipped in frontend code.
+      Origin allowlisting only stops other websites from using a browser key. It does not hide
+      the key, and a script outside a browser can fake the <InlineCode>Origin</InlineCode>{" "}
+      header, so keep browser key permissions minimal.
     </P>
 
     <H2>Why prefer a backend?</H2>

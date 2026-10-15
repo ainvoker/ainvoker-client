@@ -7,6 +7,8 @@ export type ApiKeyScope = string;
 
 export type ApiKeyPermissions = { scopes: ApiKeyScope[] };
 
+export type ApiKeyClientType = "SERVER" | "BROWSER";
+
 export type ApiKey = {
     id: string;
     projectId: string;
@@ -16,6 +18,7 @@ export type ApiKey = {
     lastUsed: string | null;
     expiresAt: string | null;
     status: string;
+    clientType: ApiKeyClientType;
     createdAt: string;
     updatedAt: string;
 };
@@ -26,6 +29,7 @@ export type CreatedApiKey = ApiKey & {
 
 export type CreateApiKeyInput = {
     keyName: string;
+    clientType?: ApiKeyClientType;
     permissions?: ApiKeyPermissions;
     expiresAt?: string | null;
 };

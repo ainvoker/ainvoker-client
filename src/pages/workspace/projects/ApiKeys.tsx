@@ -109,6 +109,7 @@ const ApiKeys = () => {
         lastUsed: created.lastUsed,
         expiresAt: created.expiresAt,
         status: created.status,
+        clientType: created.clientType,
         createdAt: created.createdAt,
         updatedAt: created.updatedAt,
       }
@@ -261,6 +262,7 @@ const ApiKeys = () => {
                     <tr className="border-b border-neutral-200/80 text-xs tracking-wide text-neutral-400 uppercase dark:border-neutral-700">
                       <th className="px-4 py-3 font-medium">Name</th>
                       <th className="px-4 py-3 font-medium">Prefix</th>
+                      <th className="px-4 py-3 font-medium">Client</th>
                       <th className="px-4 py-3 font-medium">Permissions</th>
                       <th className="px-4 py-3 font-medium">Status</th>
                       <th className="px-4 py-3 font-medium">Last used</th>
@@ -289,6 +291,18 @@ const ApiKeys = () => {
                           <td className="px-4 py-3 font-mono text-xs text-neutral-600 dark:text-neutral-300">
                             {key.keyPrefix}
                             …
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={[
+                                "inline-flex rounded-md px-2 py-0.5 text-xs font-medium",
+                                key.clientType === "BROWSER"
+                                  ? "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300"
+                                  : "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300",
+                              ].join(" ")}
+                            >
+                              {key.clientType === "BROWSER" ? "Browser" : "Server"}
+                            </span>
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex flex-wrap gap-1">

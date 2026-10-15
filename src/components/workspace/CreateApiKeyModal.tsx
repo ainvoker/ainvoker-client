@@ -8,7 +8,7 @@ import Button from "../common/Button"
 import ApiKeyCapabilitiesField from "./ApiKeyCapabilitiesField"
 import ExpiryDatePicker from "./ExpiryDatePicker"
 import { useTheme } from "../../contexts/ThemeContext"
-import type { CreateApiKeyInput } from "../../services/ApiKeyService"
+import type { ApiKeyClientType, CreateApiKeyInput } from "../../services/ApiKeyService"
 import { expiryDayToIso, permissionsFromFeatures } from "../../utils/apiKeyCapabilities"
 
 const createApiKeySchema = z.object({
@@ -16,6 +16,20 @@ const createApiKeySchema = z.object({
 })
 
 type CreateApiKeyFormValues = z.infer<typeof createApiKeySchema>
+
+const CLIENT_TYPE_OPTIONS: { id: ApiKeyClientType; label: string; description: string }[] = [
+  {
+    id: "SERVER",
+    label: "Server",
+    description: "For your backend or the Node SDK. Rejected if sent from a browser.",
+  },
+  {
+    id: "BROWSER",
+    label: "Browser",
+    description:
+      "For direct browser calls from your allowed app URLs only. The secret is visible to users, so grant minimal permissions and set an expiry.",
+  },
+]
 
 type CreateApiKeyModalProps = {
   open: boolean
@@ -32,6 +46,7 @@ const CreateApiKeyModal = ({ open, onClose, onSubmit }: CreateApiKeyModalProps) 
       resolver: zodResolver(createApiKeySchema),
       defaultValues: { keyName: "" },
     })
+  const [clientType, setClientType] = useState<ApiKeyClientType>("SERVER")
   const [features, setFeatures] = useState<string[]>([])
   const [expiryDay, setExpiryDay] = useState<string | null>(null)
 
@@ -48,6 +63,7 @@ const CreateApiKeyModal = ({ open, onClose, onSubmit }: CreateApiKeyModalProps) 
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && !formState.isSubmitting) {
+        setClientType("SERVER")
         setFeatures([])
         setExpiryDay(null)
         onClose()
@@ -64,13 +80,14 @@ const CreateApiKeyModal = ({ open, onClose, onSubmit }: CreateApiKeyModalProps) 
   if (!open) return null
 
   const close = () => {
+    setClientType("SERVER")
     setFeatures([])
     setExpiryDay(null)
     onClose()
   }
 
   const submit: SubmitHandler<CreateApiKeyFormValues> = async (values) => {
-    const input: CreateApiKeyInput = { keyName: values.keyName }
+    const input: CreateApiKeyInput = { keyName: values.keyName, clientType }
 
     const permissions = permissionsFromFeatures(features)
     if (permissions) {
@@ -150,6 +167,42 @@ const CreateApiKeyModal = ({ open, onClose, onSubmit }: CreateApiKeyModalProps) 
             {formState.errors.keyName ? (
               <p className="text-xs text-red-500">{formState.errors.keyName.message}</p>
             ) : null}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <p className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+              Used from
+            </p>
+            <div
+              role="radiogroup"
+              aria-label="Used from"
+              className="grid grid-cols-2 gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800"
+            >
+              {CLIENT_TYPE_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={clientType === option.id}
+                  disabled={formState.isSubmitting}
+                  onClick={() => setClientType(option.id)}
+                  className={[
+                    "rounded-md px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50",
+                    clientType === option.id
+                      ? "bg-white text-accent shadow-sm dark:bg-neutral-950"
+                      : "text-neutral-500 hover:text-accent dark:text-neutral-400",
+                  ].join(" ")}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {CLIENT_TYPE_OPTIONS.find((option) => option.id === clientType)?.description}
+              {clientType === "BROWSER"
+                ? " Requires at least one allowed app URL in project settings."
+                : null}
+            </p>
           </div>
 
           <div className="flex flex-col gap-1.5">

@@ -49,9 +49,20 @@ const Errors = () => (
         ["404", <InlineCode>NOT_FOUND</InlineCode>, "Unknown model"],
         ["429", <InlineCode>RATE_LIMIT_EXCEEDED</InlineCode>, "Monthly request or token quota"],
         ["500", <InlineCode>INTERNAL_ERROR</InlineCode>, "Unexpected server error"],
-        ["502", <InlineCode>UPSTREAM_ERROR</InlineCode>, "Upstream provider failed"],
+        ["400 / 502", <InlineCode>UPSTREAM_ERROR</InlineCode>, "Provider rejected the request or returned an unusable reply"],
+        [
+          "503",
+          <InlineCode>PROVIDER_UNAVAILABLE</InlineCode>,
+          "Provider is overloaded or unreachable; safe to retry",
+        ],
       ]}
     />
+    <P>
+      AInvoker retries a provider once before returning{" "}
+      <InlineCode>PROVIDER_UNAVAILABLE</InlineCode>, and the SDK retries that code twice more with
+      a short backoff. Each request that reaches AInvoker counts toward your monthly request
+      limit, including failed ones.
+    </P>
 
     <H2>SDK errors</H2>
     <P>

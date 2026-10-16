@@ -1,13 +1,16 @@
 import {
   type FormEvent,
+  forwardRef,
   useCallback,
   useEffect,
   useMemo,
   useState,
 } from "react"
+import type { ComponentPropsWithoutRef } from "react"
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useNavigate, useSearchParams } from "react-router-dom"
+import { FiEye, FiEyeOff } from "react-icons/fi"
 import WorkspacePage from "../../../components/workspace/WorkspacePage"
 import Button from "../../../components/common/Button"
 import InlineLoader from "../../../components/common/InlineLoader"
@@ -43,6 +46,36 @@ const cardClassName =
 
 const secondaryButtonClass =
   "!bg-transparent !px-3 !py-2 text-sm !text-neutral-600 ring-1 ring-neutral-200 hover:!bg-neutral-50 dark:!text-neutral-300 dark:ring-neutral-700 dark:hover:!bg-neutral-800"
+
+const PasswordInput = forwardRef<
+  HTMLInputElement,
+  ComponentPropsWithoutRef<"input">
+>(({ className = "", ...props }, ref) => {
+  const [visible, setVisible] = useState(false)
+
+  return (
+    <div className="relative">
+      <input
+        {...props}
+        ref={ref}
+        type={visible ? "text" : "password"}
+        placeholder={props.placeholder ?? " "}
+        className={`${className} peer pr-11`}
+      />
+      <button
+        type="button"
+        className="absolute inset-y-0 right-1 my-auto grid size-9 place-items-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 peer-placeholder-shown:pointer-events-none peer-placeholder-shown:invisible dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+        aria-label={visible ? "Hide password" : "Show password"}
+        aria-pressed={visible}
+        onClick={() => setVisible((current) => !current)}
+      >
+        {visible ? <FiEyeOff aria-hidden="true" /> : <FiEye aria-hidden="true" />}
+      </button>
+    </div>
+  )
+})
+
+PasswordInput.displayName = "PasswordInput"
 
 type SetPasswordStep = "idle" | "otp" | "password"
 type SocialProvider = "google" | "github"
@@ -565,8 +598,7 @@ const Security = () => {
                 <span className="mb-1.5 block text-xs tracking-wide text-neutral-400 uppercase">
                   Current password
                 </span>
-                <input
-                  type="password"
+                <PasswordInput
                   className={inputClassName}
                   autoComplete="current-password"
                   disabled={changeForm.formState.isSubmitting}
@@ -583,8 +615,7 @@ const Security = () => {
                 <span className="mb-1.5 block text-xs tracking-wide text-neutral-400 uppercase">
                   New password
                 </span>
-                <input
-                  type="password"
+                <PasswordInput
                   className={inputClassName}
                   autoComplete="new-password"
                   disabled={changeForm.formState.isSubmitting}
@@ -601,8 +632,7 @@ const Security = () => {
                 <span className="mb-1.5 block text-xs tracking-wide text-neutral-400 uppercase">
                   Confirm new password
                 </span>
-                <input
-                  type="password"
+                <PasswordInput
                   className={inputClassName}
                   autoComplete="new-password"
                   disabled={changeForm.formState.isSubmitting}
@@ -737,8 +767,7 @@ const Security = () => {
                 <span className="mb-1.5 block text-xs tracking-wide text-neutral-400 uppercase">
                   New password
                 </span>
-                <input
-                  type="password"
+                <PasswordInput
                   className={inputClassName}
                   autoComplete="new-password"
                   disabled={setPasswordForm.formState.isSubmitting}
@@ -755,8 +784,7 @@ const Security = () => {
                 <span className="mb-1.5 block text-xs tracking-wide text-neutral-400 uppercase">
                   Confirm password
                 </span>
-                <input
-                  type="password"
+                <PasswordInput
                   className={inputClassName}
                   autoComplete="new-password"
                   disabled={setPasswordForm.formState.isSubmitting}
@@ -963,8 +991,7 @@ const Security = () => {
                       <span className="mb-1.5 block text-xs tracking-wide text-neutral-400 uppercase">
                         Password
                       </span>
-                      <input
-                        type="password"
+                      <PasswordInput
                         value={deletePassword}
                         onChange={(event) =>
                           setDeletePassword(event.target.value)

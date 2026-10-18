@@ -12,14 +12,27 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import Button from '../components/common/Button'
 import AuthLayout from '../layouts/AuthLayout'
-import { loginPathWithNext, resolveInviteNext } from '../utils/inviteRedirect'
+import {
+    loginPathWithNext,
+    resolveInviteNext,
+    verifyEmailPathWithNext,
+} from '../utils/inviteRedirect'
+
+function signupHasSession(data: unknown): boolean {
+    return Boolean(
+        data &&
+        typeof data === "object" &&
+        "session" in data &&
+        (data as { session?: unknown }).session,
+    )
+}
 
 const Signup = () => {
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
     const inviteNext = resolveInviteNext(searchParams.get("next"))
     const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false)
-    const { refresh } = useAuth()
+    const { refresh, setAuth } = useAuth()
 
     const handleBack = () => {
         if (window.history.length > 1) navigate(-1)
@@ -34,17 +47,30 @@ const Signup = () => {
     const onSubmit: SubmitHandler<SignupFormValues> = async ({ name, email, password }) => {
         const [data, err] = await AuthService.signup({ name, email, password })
 
-        if (!data && err) {
+        if (err && err !== "Email verification required") {
             setError('email', {
                 type: "server",
                 message: err.startsWith("User already exists.") ? "User already exists." : err,
             })
-
             return
         }
 
-        reset()
-        await refresh()
+        if (signupHasSession(data)) {
+            reset()
+            await refresh()
+            return
+        }
+
+        // Neon blocks a session until the email is verified — do not refresh (clears the stub).
+        setAuth({
+            id: "",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            email,
+            emailVerified: false,
+            name: "",
+        })
+        navigate(verifyEmailPathWithNext(inviteNext), { replace: true })
     }
 
     useEffect(() => {

@@ -2,18 +2,22 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import OTPInput from '../components/common/OTPInput'
 import Button from '../components/common/Button'
-import { useNavigate } from 'react-router-dom'
-import { IoIosArrowRoundBack } from "react-icons/io";
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { IoArrowBackOutline } from "react-icons/io5";
 import AuthService from '../services/AuthService'
+import AuthLayout from '../layouts/AuthLayout'
+import { loginPathWithNext, resolveInviteNext } from '../utils/inviteRedirect'
 
 const VerifyEmail = () => {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
     const [resendCountdown, setResendCountdown] = useState<number>(60)
     const [resent, setResent] = useState<boolean>(false)
-    const { user, refresh } = useAuth()
+    const { user, refresh, setAuth } = useAuth()
     const [otp, setOtp] = useState<string>("")
-    const nav = useNavigate()
+    const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+    const inviteNext = resolveInviteNext(searchParams.get("next"))
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -32,12 +36,18 @@ const VerifyEmail = () => {
 
     const handleResend = async () => {
         setOtp("")
+        setError(null)
         setResent(true)
-        
+
         await AuthService.resendVerifyEmailOTP({ email: user?.email as string })
 
         setResendCountdown(60)
         setResent(false)
+    }
+
+    const handleBackToSignIn = () => {
+        setAuth(undefined)
+        navigate(loginPathWithNext(inviteNext), { replace: true })
     }
 
     useEffect(() => {
@@ -51,48 +61,55 @@ const VerifyEmail = () => {
     }, [resendCountdown])
 
     return (
-        <div className='h-screen flex flex-col justify-center items-center'>
-            <div className='flex flex-col items-center'>
-                <div className='text-center'>
-                    <h1 className='text-4xl font-bold text-gray-700 pb-4'>Verify you email</h1>
-                    <p className='text-lg font-lighter text-gray-600'>Please enter the six digit verification code we sent to</p>
-                    <p className='text-lg font-bold text-gray-700'>{user?.email}</p>
-                </div>
+        <AuthLayout>
+            <button
+                type="button"
+                onClick={handleBackToSignIn}
+                className="mb-4 text-gray-500 text-sm cursor-pointer flex items-center hover:underline w-fit"
+            >
+                <IoArrowBackOutline className="mr-2" />
+                Back to Sign in
+            </button>
+            <h1 className="text-2xl font-bold text-left pb-2 text-gray-800">Verify your email</h1>
+            <p className="text-sm text-gray-600 pb-1">
+                Enter the six-digit code we sent to
+            </p>
+            <p className="text-sm font-semibold text-gray-800 pb-2">{user?.email}</p>
 
-                <form className='' onSubmit={handleSubmit}>
-                    <OTPInput
-                        value={otp}
-                        onChange={setOtp}
-                        error={error}
-                        setError={setError}
-                    />
+            <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
+                <OTPInput
+                    value={otp}
+                    onChange={setOtp}
+                    error={error}
+                    setError={setError}
+                    size="compact"
+                />
 
-                    <Button
-                        type='submit'
-                        className='w-full'
-                        disabled={otp.length != 6 || isSubmitting || !!error}
-                        loading={isSubmitting}
+                <Button
+                    type='submit'
+                    className='w-full'
+                    disabled={otp.length != 6 || isSubmitting || !!error}
+                    loading={isSubmitting}
+                >
+                    Verify
+                </Button>
+            </form>
+
+            <p className='text-xs text-center py-4 text-gray-600'>
+                Didn't get the email?{' '}
+                {resendCountdown > 0 ? (
+                    <span className="font-semibold">Resend in {resendCountdown}s</span>
+                ) : (
+                    <button
+                        type="button"
+                        className="font-semibold hover:underline cursor-pointer"
+                        onClick={handleResend}
                     >
-                        Verify
-                    </Button>
-                </form>
-
-                <p className='text-md font-lighter text-gray-600 py-4'>
-                    Didn't get the email?
-                    <span className='ml-1'>
-                        {
-                            resendCountdown > 0
-                                ? <strong>Resend in {resendCountdown}s</strong>
-                                : <strong className='hover:underline cursor-pointer' onClick={handleResend}>{resent ? "Sent" : "Resend"}</strong>
-                        }
-                    </span>
-                </p>
-                <div className='flex gap-1 items-center text-md text-gray-700 cursor-pointer hover:underline' onClick={() => nav(-1)}>
-                    <IoIosArrowRoundBack size={25} />
-                    back
-                </div>
-            </div>
-        </div>
+                        {resent ? "Sent" : "Resend"}
+                    </button>
+                )}
+            </p>
+        </AuthLayout>
     )
 }
 
